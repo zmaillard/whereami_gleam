@@ -34,7 +34,7 @@ pub fn predictions_from_json(
   let record_decoder = {
     use time <- decode.field("t", time_decoder)
     use value <- decode.field("v", decode.float)
-    use prediction_type <- decode.field("t", decode.string)
+    use prediction_type <- decode.field("type", decode.string)
 
     case prediction_type {
       "H" -> decode.success(High(time:, value:))
