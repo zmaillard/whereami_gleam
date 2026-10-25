@@ -6,6 +6,7 @@ document.addEventListener("alpine:init", () => {
     mapboxToken: "",
     place: "",
     abbreviatedPlace: "",
+    isLoaded: false,
     automaticCoordinates: false,
     showSearch: false,
     isCurrentLocation: true,
@@ -86,6 +87,42 @@ document.addEventListener("alpine:init", () => {
     detailsButtonText() {
       return `Show Details for ${this.abbreviatedPlace}`;
     },
+    hasPlace() {
+      return this.isLoaded;
+    },
+    countyStateFormatted() {
+      return `${this.results.county}, ${this.results.state}`
+    },
+    drainage() {
+      if (!("drainage" in this.results)) return "";
+      return this.results.drainage[this.results.drainage.length - 1];
+    },
+    level3Ecoregion() {
+      if (!("ecoregions" in this.results)) return "";
+      return this.results.ecoregions.level3;
+    },
+    timezone() {
+      if (!("time" in this.results)) return "";
+      return this.results.time.timezone;
+    },
+    sunrise() {
+      if (!("time" in this.results)) return "";
+      return new Date(this.results.time.sunrise).toLocaleTimeString("en-US");
+    },
+    sunset() {
+      if (!("time" in this.results)) return "";
+      return new Date(this.results.time.sunset).toLocaleTimeString("en-US");
+    },
+    lengthOfDay() {
+      if (!("time" in this.results)) return "";
+
+      const milliseconds = this.results.time.sunset - this.results.time.sunrise;
+      const secs = Math.floor(Math.abs(milliseconds) / 1000);
+      const mins = Math.floor(secs / 60);
+      const hours = Math.floor(mins / 60);
+
+      return `${hours % 24} hours and ${mins % 60} minutes`
+    },
     locate(e) {
       let self = this;
       let params = {
@@ -106,6 +143,7 @@ document.addEventListener("alpine:init", () => {
           if (r.county) {
             self.results.county = r.county;
             self.results.state = r.state;
+            self.isLoaded = true;
           }
           if (r.place) {
             self.results.place = r.place;
@@ -140,8 +178,8 @@ document.addEventListener("alpine:init", () => {
         .then((r) => {
           if (r.time) {
             self.results.time = {
-              sunset: r.time.sunset,
-              sunrise: r.time.sunrise,
+              sunset: Date.parse(r.time.sunset),
+              sunrise: Date.parse(r.time.sunrise),
               timezone: r.time.timezone,
             };
           }
@@ -165,7 +203,7 @@ document.addEventListener("alpine:init", () => {
           }
         });
 
-      Promise.all([politcalPromise, physicalPromise]).then((a) =>
+      Promise.all([politcalPromise, physicalPromise, forecastPromise]).then((a) =>
         console.log(self.results),
       );
     },

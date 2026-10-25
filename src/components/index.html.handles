@@ -1,4 +1,5 @@
-<div class="hero " x-data="locate">
+<div x-data="locate">
+<div class="hero" >
     <div class="hero-body">
             <div class="container has-text-centered">
                 <h1 class="title">Where Am I?</h1>
@@ -30,8 +31,13 @@
 
     <div x-show="showSearch">
     </div>
-</div>
-<section class="section">
+    <section x-show="hasPlace" class="section">
+        <div class="content is-size-4"><strong x-text="results.place"></strong> is located in <strong x-text="countyStateFormatted"></strong>.
+            It is located in the <strong x-text="timezone"></strong> time zone.
+            Water here flows into the <strong x-text="drainage">Pacific Ocean</strong>.  It is part of the <strong x-text="level3Ecoregion">Snake River Plain</strong> ecoregion.</div>
+        <div class="content is-size-4">Sunrise today is at <strong x-text="sunrise"></strong>.  Sunset is at <strong x-text="sunset"></strong>.  Today is <strong x-text="lengthOfDay"></strong> long.
+    </section>
+<section x-show="hasPlace" class="section">
   <h1 class="title">Place Details</h1>
     <div class="content">
         <table>
@@ -56,8 +62,7 @@
   <h1 class="title">Forecast</h1>
   <h2 class="subtitle">Weather</h2>
 </section>
-
-<div class="container" id="details"></div>
+</div>
 
 <input id="mapbox_token" type="hidden" value={{ mapbox_token }} />
 <script src="/static/js/locate.js"></script>

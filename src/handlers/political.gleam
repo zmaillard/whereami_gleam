@@ -6,6 +6,7 @@ import gleam/json
 import gleam/list
 import gleam/option.{type Option, Some}
 import gleam/result
+import utilities/state
 import location/queries
 import wisp.{type Request, type Response}
 
@@ -46,7 +47,7 @@ fn result_json(
 
   let county_json = [
     #("county", json.string(county.name)),
-    #("state", json.string(county.state)),
+    #("state", json.nullable(state.state_name_from_fips(county.state), of: json.string)),
   ]
 
   let place = case place {

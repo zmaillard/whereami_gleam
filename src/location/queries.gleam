@@ -1,4 +1,4 @@
-import bearing
+import utilities/bearing
 import coordinate
 import error.{type DatabaseError, NoRecordsFoundError, QueryError}
 import gleam/list

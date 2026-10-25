@@ -10,7 +10,7 @@ import gleam/option
 import gleam/result
 import tempo/datetime
 import tempo/duration
-import tide
+import utilities/tide
 
 type ElevationResponse {
   ElevationResponse(value: Float)

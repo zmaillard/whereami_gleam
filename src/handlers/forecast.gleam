@@ -34,7 +34,7 @@ fn result_json(
       "time",
       json.object([
         #("sunset", json.string(weather.sunset)),
-        #("sunrise", json.string(weather.sunset)),
+        #("sunrise", json.string(weather.sunrise)),
         #("timezone", json.string(weather.time_zone)),
       ]),
     ),
