@@ -1,0 +1,1 @@
+SELECT e."NA_L1CODE" as na_l1code, e."NA_L1NAME" as na_l1name,e."NA_L2CODE" as na_l2code, e."NA_L2NAME" as na_l2name,e."NA_L3CODE" as na_l3code, e."NA_L3NAME" as na_l3name  FROM ecoregions_alaska e WHERE ST_CONTAINS(e.geom, ST_POINT($1,$2,4269));

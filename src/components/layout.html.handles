@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en" class="">
+<head>
+    <meta charset="UTF-8">
+    <meta content="width=device-width,initial-scale=1" name="viewport">
+    <meta name="theme-color" content="#1f6821">
+    <title>{{ title }}</title>
+
+    <link href="/static/css/app.css" rel="stylesheet" type="text/css" />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bulma@1.0.4/css/bulma.min.css"
+    >
+    <style>
+    dt {
+  font-weight: bold;
+}
+dd {
+  background:none no-repeat left top;
+  padding-left: 50px;
+}
+    </style>
+    <script src="//unpkg.com/alpinejs" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/htmx.org@2.0.10/dist/htmx.min.js"
+              integrity="sha384-H5SrcfygHmAuTDZphMHqBJLc3FhssKjG7w/CeCpFReSfwBWDTKpkzPP8c+cLsK+V"
+              crossorigin="anonymous"></script>
+    <script src="https://unpkg.com/htmx-ext-loading-states@2.0.0/loading-states.js"></script>
+</head>
+<body hx-ext="loading-states">
+        {{>content_template .}}
+          <footer class="footer">
+            <div class="content has-text-centered">
+              <p>
+                <strong>Where Am I?</strong> by <a href="https://zachmaillard.xyz">Zach Maillard</a> <br/>
+                <a href="/">Text Search</a> | <a href="/map">Map Search</a> | <a href="/about">About</a>  <br/>
+                <a href="https://github.com/zmaillard/whereami/releases/tag/{ version }">{{ version }}</a>
+              </p>
+            </div>
+          </footer>
+
+    <script src="/static/js/theme.js"></script>
+</body>
+</html>
