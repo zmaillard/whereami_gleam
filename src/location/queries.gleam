@@ -1,4 +1,3 @@
-import utilities/bearing
 import coordinate
 import error.{type DatabaseError, NoRecordsFoundError, QueryError}
 import gleam/list
@@ -7,6 +6,7 @@ import gleam/result
 import gleam/string
 import pog
 import sql
+import utilities/bearing
 
 pub fn nws_office(
   db_conn: pog.Connection,

@@ -6,8 +6,8 @@ import gleam/json
 import gleam/list
 import gleam/option.{type Option, Some}
 import gleam/result
-import utilities/state
 import location/queries
+import utilities/state
 import wisp.{type Request, type Response}
 
 type PoliticalError {
@@ -47,7 +47,10 @@ fn result_json(
 
   let county_json = [
     #("county", json.string(county.name)),
-    #("state", json.nullable(state.state_name_from_fips(county.state), of: json.string)),
+    #(
+      "state",
+      json.nullable(state.state_name_from_fips(county.state), of: json.string),
+    ),
   ]
 
   let place = case place {

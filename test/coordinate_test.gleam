@@ -103,8 +103,7 @@ pub fn predictions_from_json_malformed_test() {
 }
 
 pub fn reverse_geocode_place_json_test() {
-  let json =
-    coordinate.reverse_geocode_to_json(coordinate.Place("Boise", "ID"))
+  let json = coordinate.reverse_geocode_to_json(coordinate.Place("Boise", "ID"))
 
   assert json == "{\"place\":\"Boise\",\"state\":\"ID\"}"
 }
