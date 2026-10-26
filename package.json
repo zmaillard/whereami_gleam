@@ -1,0 +1,33 @@
+{
+  "name": "whereami",
+  "version": "1.0.0",
+  "description": "[![Package Version](https://img.shields.io/hexpm/v/whereami_gleam)](https://hex.pm/packages/whereami_gleam) [![Hex Docs](https://img.shields.io/badge/hex-docs-ffaff3)](https://whereami-gleam.hexdocs.pm/)",
+  "main": "index.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "vitest run"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/zmaillard/whereami_gleam.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/zmaillard/whereami_gleam/issues"
+  },
+  "homepage": "https://github.com/zmaillard/whereami_gleam#readme",
+  "devDependencies": {
+    "@testing-library/dom": "^10.4.2",
+    "@testing-library/jest-dom": "^7.0.1",
+    "jsdom": "^29.1.1",
+    "vitest": "^4.1.12"
+  },
+  "dependencies": {
+    "alpinejs": "^3.17.5"
+  }
+}

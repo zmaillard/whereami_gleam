@@ -1,5 +1,11 @@
-document.addEventListener("alpine:init", () => {
-  Alpine.data("locate", () => ({
+import { getPlace, getAbbreviatedPlace, lengthOfDay, formatTime } from "./format.js";
+
+export function locateComponent({
+  api,
+  searchApi,
+  geolocation = navigator.geolocation,
+} = {}) {
+  return {
     latitude: "",
     longitude: "",
     searchFilter: "",
@@ -17,57 +23,36 @@ document.addEventListener("alpine:init", () => {
       maximumAge: 0,
     },
     init() {
-      let self = this;
-      this.mapboxToken = document.getElementById("mapbox_token").value;
-      navigator.geolocation.getCurrentPosition(
-        (pos) => {
-          const crd = pos.coords;
-
-          this.latitude = crd.latitude;
-          this.longitude = crd.longitude;
-          let latInput = document.getElementById("latitude");
-          latInput.value = this.latitude;
-          let lngInput = document.getElementById("longitude");
-          lngInput.value = this.longitude;
-          this.automaticCoordinates = true;
-
-          let params = {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/x-www-form-urlencoded",
-            },
-            body: new URLSearchParams({
-              lat: this.latitude,
-              lng: this.longitude,
-            }),
-          };
-          fetch("/geocode", params)
-            .then((r) => r.json())
-            .then((r) => {
-              self.isCurrentLocation = true;
-              self.place = self.getPlace(r);
-              self.abbreviatedPlace = self.getAbbreviatedPlace(r);
-            });
-        },
-        (err) => {
-          console.warn(`ERROR(${err.code}): ${err.message}`);
-          self.showSearch = true;
-          self.isCurrentLocation = false;
-        },
+      geolocation.getCurrentPosition(
+        (pos) => this.onPosition(pos),
+        (err) => this.onGeolocationError(err),
         this.options,
       );
     },
-    getAbbreviatedPlace(reverseGeocode) {
-      if (reverseGeocode) {
-        return reverseGeocode.place;
-      }
-      return "";
+    onGeolocationError(err) {
+      console.warn(`ERROR(${err.code}): ${err.message}`);
+      this.showSearch = true;
+      this.isCurrentLocation = false;
     },
-    getPlace(reverseGeocode) {
-      if (reverseGeocode) {
-        return `${reverseGeocode.place}, ${reverseGeocode.state}`;
-      }
-      return "";
+    onPosition(pos) {
+      const crd = pos.coords;
+
+      this.latitude = crd.latitude;
+      this.longitude = crd.longitude;
+      this.automaticCoordinates = true;
+      let self = this;
+
+      let coords = {
+        lat: this.latitude,
+        lng: this.longitude,
+      };
+
+      api.geocode(coords)
+        .then((r) => {
+          self.isCurrentLocation = true;
+          self.place = getPlace(r);
+          self.abbreviatedPlace = getAbbreviatedPlace(r);
+        });
     },
     toggle() {
       this.showSearch = !this.showSearch;
@@ -106,36 +91,20 @@ document.addEventListener("alpine:init", () => {
       return this.results.time.timezone;
     },
     sunrise() {
-      if (!("time" in this.results)) return "";
-      return new Date(this.results.time.sunrise).toLocaleTimeString("en-US");
+      return this.results.time ? formatTime(this.results.time.sunrise) : "";
     },
     sunset() {
-      if (!("time" in this.results)) return "";
-      return new Date(this.results.time.sunset).toLocaleTimeString("en-US");
+      return this.results.time ? formatTime(this.results.time.sunset) : "";
     },
     lengthOfDay() {
-      if (!("time" in this.results)) return "";
-
-      const milliseconds = this.results.time.sunset - this.results.time.sunrise;
-      const secs = Math.floor(Math.abs(milliseconds) / 1000);
-      const mins = Math.floor(secs / 60);
-      const hours = Math.floor(mins / 60);
-
-      return `${hours % 24} hours and ${mins % 60} minutes`
+      return this.results.time ? lengthOfDay(this.results.time) : "";
     },
     locate(e) {
       let self = this;
-      let params = {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/x-www-form-urlencoded",
-        },
-        body: new URLSearchParams({ lat: this.latitude, lng: this.longitude }),
-      };
+      const coords = { lat: this.latitude, lng: this.longitude };
 
       self.results = {};
-      let politcalPromise = fetch("/political", params)
-        .then((r) => r.json())
+      let politcalPromise = api.political(coords)
         .then((r) => {
           if (r.congressionalDistrict) {
             self.results.congressionalDistrict = r.congressionalDistrict;
@@ -158,8 +127,7 @@ document.addEventListener("alpine:init", () => {
           }
         });
 
-      let physicalPromise = fetch("/physical", params)
-        .then((r) => r.json())
+      let physicalPromise = api.physical(coords)
         .then((r) => {
           if (r.drainage) {
             self.results.drainage = r.drainage;
@@ -173,8 +141,7 @@ document.addEventListener("alpine:init", () => {
           }
         });
 
-      let forecastPromise = fetch("/forecast", params)
-        .then((r) => r.json())
+      let forecastPromise = api.forecast(coords)
         .then((r) => {
           if (r.time) {
             self.results.time = {
@@ -209,23 +176,14 @@ document.addEventListener("alpine:init", () => {
     },
     search(e) {
       let self = this;
-      let latInput = document.getElementById("latitude");
-      let lngInput = document.getElementById("longitude");
-
       e.preventDefault();
 
-      fetch(
-        `https://api.mapbox.com/search/geocode/v6/forward?q=${this.searchFilter}&access_token=${this.mapboxToken}&autocomplete=false&country=us`,
-      )
-        .then((r) => r.json())
+      searchApi.reverse(this.searchFilter, this.mapboxToken)
         .then((r) => {
           if (r.features && r.features.length > 0) {
             const feature = r.features[0];
-            console.log(feature);
             if (feature.geometry && feature.geometry.coordinates) {
               [self.longitude, self.latitude] = feature.geometry.coordinates;
-              latInput.value = self.latitude;
-              lngInput.value = self.longitude;
 
               self.place = feature.properties.full_address;
               self.abbreviatedPlace = feature.properties.name;
@@ -234,5 +192,5 @@ document.addEventListener("alpine:init", () => {
           }
         });
     },
-  }));
-});
+  };
+}

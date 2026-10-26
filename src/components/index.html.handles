@@ -1,4 +1,4 @@
-<div x-data="locate">
+<div x-data="locate({ mapboxToken: '{{ mapbox_token }}' })">
 <div class="hero" >
     <div class="hero-body">
             <div class="container has-text-centered">
@@ -23,8 +23,8 @@
                     <!--<button class="button is-primary" data-loading-class="is-loading" data-loading-disable hx-post="/details" hx-target="#details"  hx-swap="show:#details:top" x-text="detailsButtonText"></button>-->
                     <button @click="locate" class="button is-primary"  x-text="detailsButtonText"></button>
 
-                    <input name="lat" type="hidden" id="latitude" />
-                    <input name="lng" type="hidden" id="longitude" />
+                    <input name="lat" type="hidden" id="latitude" name="latitude" x-model="latitude" />
+                    <input name="lng" type="hidden" id="longitude" name="longitude" x-model="longitude"  />
                 </div>
             </div>
     </div>
@@ -63,6 +63,3 @@
   <h2 class="subtitle">Weather</h2>
 </section>
 </div>
-
-<input id="mapbox_token" type="hidden" value={{ mapbox_token }} />
-<script src="/static/js/locate.js"></script>
