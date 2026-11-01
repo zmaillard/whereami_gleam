@@ -1,22 +1,27 @@
-import { getPlace, getAbbreviatedPlace, lengthOfDay, formatTime } from "./format.js";
+import { lengthOfDay, formatTime } from "./format.js";
 
 export function locateComponent({
   api,
   searchApi,
   geolocation = navigator.geolocation,
+  mapboxToken = "",
 } = {}) {
   return {
     latitude: "",
     longitude: "",
     searchFilter: "",
-    mapboxToken: "",
+    mapboxToken,
     place: "",
-    abbreviatedPlace: "",
+    placeState: "",
     isLoaded: false,
+    loadingResults: false,
     automaticCoordinates: false,
     showSearch: false,
     isCurrentLocation: true,
-    results: {},
+    countyMap: null,
+    markers: {},
+    results: {
+    },
     options: {
       enableHighAccuracy: true,
       timeout: 5000,
@@ -28,6 +33,7 @@ export function locateComponent({
         (err) => this.onGeolocationError(err),
         this.options,
       );
+      console.log(this.mapboxToken)
     },
     onGeolocationError(err) {
       console.warn(`ERROR(${err.code}): ${err.message}`);
@@ -50,8 +56,8 @@ export function locateComponent({
       api.geocode(coords)
         .then((r) => {
           self.isCurrentLocation = true;
-          self.place = getPlace(r);
-          self.abbreviatedPlace = getAbbreviatedPlace(r);
+          self.place = r.place;
+          self.placeState = r.state;
         });
     },
     toggle() {
@@ -66,21 +72,104 @@ export function locateComponent({
     formatplace() {
       return `<strong>${this.isCurrentLocation ? "Current Location" : "User Defined Location"}</strong>: ${this.place}`;
     },
+    currentTime() {
+      if (!("time" in this.results)) return "";
+
+      return this.results.time.now.format("time");
+    },
     displaycoords() {
       return `<strong>Current Location</strong>: ${this.latitude}, ${this.longitude}`;
     },
+    dstStatement() {
+      if (!("time" in this.results)) return "";
+
+      if (!this.results.time.now.hasDST()) {
+        return "does not observe Daylight Standard Time";
+      } else {
+        return "observes Daylight Standard Time"
+      }
+
+    },
+    isDST() {
+      if (!("time" in this.results)) return "";
+
+      return this.time.now.isDST();
+    },
+    hasDST() {
+      if (!("time" in this.results)) return "";
+
+      return this.time.now.hasDST();
+    },
     detailsButtonText() {
-      return `Show Details for ${this.abbreviatedPlace}`;
+      if (this.placeState) {
+        return `Show Details for ${this.place}, ${this.placeState}`;
+      }
+      return `Show Details for ${this.place}`;
+    },
+    titleText() {
+      if (this.placeState) {
+        return `${this.place}, ${this.placeState}`;
+      }
+      return this.place;
     },
     hasPlace() {
       return this.isLoaded;
     },
+    nearestSummit() {
+      if (this.results?.topography?.nearestSummit) {
+        return this.results?.topography?.nearestSummit;
+      }
+      return "";
+    },
+    nearestSummitElevation() {
+      if (this.results?.topography?.nearestSummitElevation) {
+        return `${Math.round(this.results.topography.nearestSummitElevation)} feet`
+      }
+      return "";
+    },
+    nearestSummitDistance() {
+      if (this.results?.topography?.nearestSummitDistance && this.results?.topography?.nearestSummitBearing) {
+        return `${Math.round(this.results?.topography?.nearestSummitDistance)} miles ${this.results?.topography?.nearestSummitBearing}`;
+      }
+      return "";
+    },
+    nearestNationalPark() {
+      if (this.results?.nearestNationalPark?.name) {
+        return this.results?.nearestNationalPark?.name
+      }
+      return "";
+    },
+    nearestNationalParkDistance() {
+      if (this.results?.nearestNationalPark?.distance && this.results?.nearestNationalPark?.bearing) {
+        return `${Math.round(this.results.nearestNationalPark.distance)} miles ${this.results.nearestNationalPark.bearing}`;
+      }
+      return "";
+    },
     countyStateFormatted() {
-      return `${this.results.county}, ${this.results.state}`
+      if (this.results?.county && this.results?.state) {
+        return `${this.results.county}, ${this.results.state}`
+      }
+      return ""
     },
     drainage() {
       if (!("drainage" in this.results)) return "";
       return this.results.drainage[this.results.drainage.length - 1];
+    },
+    hydrographyFormatted() {
+      if (!("drainage" in this.results)) return "";
+      return this.results.drainage.join(" → ");
+    },
+    weatherLink() {
+      if (!("weather" in this.results)) return "";
+      return `https://www.weather.gov/${this.results.weather.office_abbreviation}`
+    },
+    level1Ecoregion() {
+      if (!("ecoregions" in this.results)) return "";
+      return this.results.ecoregions.level1;
+    },
+    level2Ecoregion() {
+      if (!("ecoregions" in this.results)) return "";
+      return this.results.ecoregions.level2;
     },
     level3Ecoregion() {
       if (!("ecoregions" in this.results)) return "";
@@ -91,15 +180,67 @@ export function locateComponent({
       return this.results.time.timezone;
     },
     sunrise() {
-      return this.results.time ? formatTime(this.results.time.sunrise) : "";
+      const t = this.results.time;
+      return t ? this.results.time.sunrise.format('time') : "";
     },
     sunset() {
-      return this.results.time ? formatTime(this.results.time.sunset) : "";
+      const t = this.results.time;
+      return t ? this.results.time.sunset.format('time') : "";
     },
     lengthOfDay() {
-      return this.results.time ? lengthOfDay(this.results.time) : "";
+      return this.results.time ? this.results.time.sunset.diff(this.results.time.sunrise).hours : "";
+    },
+    elevation() {
+      if (this.results.topography?.elevation) {
+        return `${Math.round(this.results.topography.elevation)} feet`;
+      }
+      return "";
+    },
+    setCountyMap() {
+      if (!this.countyMap) {
+        this.countyMap = L.map('countyMap').setView([this.latitude, this.longitude], 8);
+        L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+        }).addTo(this.countyMap);
+
+        this.markers["place"] = L.marker([this.latitude, this.longitude])
+        this.markers["place"].addTo(this.countyMap);
+      }
+
+      if (!("nationalPark" in this.markers) && (this.results?.nearestNationalPark?.latitude && this.results?.nearestNationalPark?.longitude)) {
+        this.markers["nationalPark"] = L.marker([this.results?.nearestNationalPark?.latitude, this.results?.nearestNationalPark?.longitude])
+        this.markers["nationalPark"].addTo(this.countyMap);
+      }
+
+      if (!("county" in this.markers) && this.results?.countyShape) {
+        this.markers["county"] = L.geoJSON(JSON.parse(this.results.countyShape), {})
+        this.markers["county"].addTo(this.countyMap);
+      }
+
+      if (!("summit" in this.markers) && (this.results?.topography?.nearestSummitLatitude && this.results?.topography?.nearestSummitLongitude)) {
+        this.markers["summit"] = L.marker([this.results?.topography?.nearestSummitLatitude, this.results?.topography?.nearestSummitLongitude])
+        this.markers["summit"].addTo(this.countyMap);
+      }
+    },
+    clearMarkers() {
+      if (this.markers && this.countyMap) {
+        for (let i = 0; i <= Object.keys(this.markers).length - 1; i++) {
+          let key = Object.keys(this.markers)[i];
+
+          this.countyMap.removeLayer(this.markers[key]);
+        }
+        for (let member in this.markers) delete this.markers[member];
+      }
+      if (this.countyMap) {
+        this.countyMap.setView([this.latitude, this.longitude], 8);
+        this.markers["place"] = L.marker([this.latitude, this.longitude])
+        this.markers["place"].addTo(this.countyMap);
+      }
     },
     locate(e) {
+      this.loadingResults = true;
+      this.clearMarkers();
       let self = this;
       const coords = { lat: this.latitude, lng: this.longitude };
 
@@ -112,6 +253,7 @@ export function locateComponent({
           if (r.county) {
             self.results.county = r.county;
             self.results.state = r.state;
+            self.results.countyShape = r.countyShape;
             self.isLoaded = true;
           }
           if (r.place) {
@@ -123,8 +265,11 @@ export function locateComponent({
               name: r.nearestNationalPark.name,
               distance: r.nearestNationalPark.distance,
               bearing: r.nearestNationalPark.bearing,
+              latitude: r.nearestNationalPark.latitude,
+              longitude: r.nearestNationalPark.longitude,
             };
           }
+          self.setCountyMap();
         });
 
       let physicalPromise = api.physical(coords)
@@ -144,35 +289,49 @@ export function locateComponent({
       let forecastPromise = api.forecast(coords)
         .then((r) => {
           if (r.time) {
+            let snow = spacetime.now().goto(r.time.timezone);
             self.results.time = {
-              sunset: Date.parse(r.time.sunset),
-              sunrise: Date.parse(r.time.sunrise),
+              sunset: spacetime(r.time.sunset, r.time.timezone),
+              sunrise: spacetime(r.time.sunrise, r.time.timezone),
               timezone: r.time.timezone,
+              now: snow,
             };
           }
           if (r.topography) {
             self.results.topography = {
-              nearest_summit: r.topography.nearest_summit,
-              nearest_summit_bearing: r.topography.nearest_summit_bearing,
-              nearest_summit_elevation: r.topography.nearest_summit_elevation,
-              nearest_summit_distance: r.topography.nearest_summit_distance,
+              nearestSummit: r.topography.nearestSummit,
+              nearestSummitBearing: r.topography.nearestSummitBearing,
+              nearestSummitElevation: r.topography.nearestSummitElevation,
+              nearestSummitDistance: r.topography.nearestSummitDistance,
+              nearestSummitLatitude: r.topography.nearestSummitLatitude,
+              nearestSummitLongitude: r.topography.nearestSummitLongitude,
               elevation: r.topography.elevation,
             };
           }
           if (r.weather) {
             self.results.weather = {
               office_abbreviation: r.weather.office_abbreviation,
+              office: r.weather.office,
               forecast_details_1: r.weather.forecast_details_1,
               forecast_details_2: r.weather.forecast_details_2,
               forecast_1: r.weather.forecast_1,
               forecast_2: r.weather.forecast_2,
+              forecast_wind_direction_1: r.weather.forecast_wind_direction_1,
+              forecast_wind_direction_2: r.weather.forecast_wind_direction_2,
+              forecast_wind_speed_1: r.weather.forecast_wind_speed_1,
+              forecast_wind_speed_2: r.weather.forecast_wind_speed_2,
+              forecast_short_forecast_1: r.weather.forecast_short_forecast_1,
+              forecast_short_forecast_2: r.weather.forecast_short_forecast_2,
+              forecast_temperature_1: r.weather.forecast_temperature_1,
+              forecast_temperature_2: r.weather.forecast_temperature_2,
             };
           }
+          self.setCountyMap();
         });
 
-      Promise.all([politcalPromise, physicalPromise, forecastPromise]).then((a) =>
-        console.log(self.results),
-      );
+      Promise.all([politcalPromise, physicalPromise, forecastPromise]).finally((a) => {
+        self.loadingResults = false
+      });
     },
     search(e) {
       let self = this;
@@ -185,8 +344,8 @@ export function locateComponent({
             if (feature.geometry && feature.geometry.coordinates) {
               [self.longitude, self.latitude] = feature.geometry.coordinates;
 
-              self.place = feature.properties.full_address;
-              self.abbreviatedPlace = feature.properties.name;
+              self.place = feature.properties.name;
+              self.placeState = feature.properties.context.region.name
               self.isCurrentLocation = false;
             }
           }

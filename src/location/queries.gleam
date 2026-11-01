@@ -187,7 +187,7 @@ pub fn watersheds(
     |> result.replace_error(NoRecordsFoundError),
   )
 
-  let huc_name = option.unwrap(row.huc12, "")
+  let huc_name = row.huc12
 
   use pog.Returned(_, huc_rows) <- result.try(
     db_conn
@@ -222,8 +222,10 @@ pub fn national_park(
 
   coordinate.NationalPark(
     option.unwrap(row.name, ""),
-    row.dist,
+    bearing.meters_to_miles(row.dist),
     bearing.bearing_from_angle(row.bearing),
+    row.latitude,
+    row.longitude,
   )
 }
 
@@ -276,7 +278,11 @@ pub fn county(
 
   use row <- result.map(row)
 
-  coordinate.County(option.unwrap(row.name, ""), option.unwrap(row.state, ""))
+  coordinate.County(
+    option.unwrap(row.name, ""),
+    option.unwrap(row.state, ""),
+    row.shape,
+  )
 }
 
 pub fn congressional_district(
@@ -324,8 +330,10 @@ pub fn summit(
   coordinate.Summit(
     option.unwrap(row.feature_name, ""),
     option.unwrap(row.elevation, 0.0),
-    row.dist,
+    bearing.meters_to_miles(row.dist),
     bearing.bearing_from_angle(row.bearing),
+    row.latitude,
+    row.longitude,
   )
 }
 

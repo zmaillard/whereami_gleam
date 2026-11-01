@@ -44,6 +44,38 @@ fn result_json(
         #("office_abbreviation", json.string(weather.office)),
         #("office", json.string(office)),
         #(
+          "forecast_wind_direction_1",
+          json.nullable(weather.forecast1_wind_direction, of: json.string),
+        ),
+        #(
+          "forecast_wind_direction_2",
+          json.nullable(weather.forecast2_wind_direction, of: json.string),
+        ),
+        #(
+          "forecast_wind_speed_1",
+          json.nullable(weather.forecast1_wind_speed, of: json.string),
+        ),
+        #(
+          "forecast_wind_speed_2",
+          json.nullable(weather.forecast2_wind_speed, of: json.string),
+        ),
+        #(
+          "forecast_short_forecast_1",
+          json.nullable(weather.forecast1_short_forecast, of: json.string),
+        ),
+        #(
+          "forecast_short_forecast_2",
+          json.nullable(weather.forecast2_short_forecast, of: json.string),
+        ),
+        #(
+          "forecast_temperature_1",
+          json.nullable(weather.forecast1_temperature, of: json.int),
+        ),
+        #(
+          "forecast_temperature_2",
+          json.nullable(weather.forecast2_temperature, of: json.int),
+        ),
+        #(
           "forecast_details_1",
           json.nullable(weather.forecast1_details, of: json.string),
         ),
@@ -61,10 +93,12 @@ fn result_json(
     #(
       "topography",
       json.object([
-        #("nearest_summit", json.string(summit.name)),
-        #("nearest_summit_bearing", json.string(summit.bearing)),
-        #("nearest_summit_elevation", json.float(summit.elevation)),
-        #("nearest_summit_distance", json.float(summit.distance)),
+        #("nearestSummit", json.string(summit.name)),
+        #("nearestSummitBearing", json.string(summit.bearing)),
+        #("nearestSummitElevation", json.float(summit.elevation)),
+        #("nearestSummitDistance", json.float(summit.distance)),
+        #("nearestSummitLatitude", json.float(summit.latitude)),
+        #("nearestSummitLongitude", json.float(summit.longitude)),
         #("elevation", json.float(current_elevation)),
       ]),
     ),
@@ -85,12 +119,13 @@ pub fn forecast_handler(req: Request, ctx: Context) -> Response {
     use weather <- result.try(
       web.weather(coord) |> result.map_error(WeatherUnavailable),
     )
+
     use office <- result.try(
       queries.nws_office(ctx.db, weather.office)
       |> result.map_error(OfficeNotFound),
     )
     use summit <- result.try(
-      queries.summit(ctx.db, coord, weather.elevation *. 3.281)
+      queries.summit(ctx.db, coord, weather.elevation)
       |> result.map_error(SummitNotFound),
     )
 

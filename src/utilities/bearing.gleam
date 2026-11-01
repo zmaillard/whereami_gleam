@@ -1,3 +1,7 @@
+pub fn meters_to_miles(distance_meters: Float) -> Float {
+  distance_meters /. 1000.0 *. 0.6214
+}
+
 pub fn bearing_from_angle(angle: Float) -> String {
   case angle {
     i if i >. 337.5 || i <=. 22.5 -> "N"

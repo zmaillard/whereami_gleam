@@ -65,7 +65,10 @@ pub fn physical_handler(req: Request, ctx: Context) -> Response {
 
     use watershed <- result.try(
       queries.watersheds(ctx.db, coord)
-      |> result.map_error(UnableToLoadWatershed),
+      |> result.map_error(fn(e) {
+        echo e
+        UnableToLoadWatershed(e)
+      }),
     )
 
     Ok(result_json(ecoregion, watershed))

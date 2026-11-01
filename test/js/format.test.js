@@ -35,8 +35,10 @@ describe("lengthOfDay", () => {
 });
 
 describe("formatTime", () => {
-  it("formats a timestamp as a locale time string", () => {
-    const ms = Date.parse("2024-06-01T18:30:00Z");
-    expect(formatTime(ms)).toBe(new Date(ms).toLocaleTimeString("en-US"));
+  it("formats time in the given timezone, not the local one", () => {
+    const ms = Date.parse("2026-10-25T18:06:44-07:00");
+    expect(formatTime(ms, "America/Boise")).toBe(
+      new Date(ms).toLocaleTimeString("en-US", { timeZone: "America/Boise" }),
+    );
   });
 });
