@@ -17,11 +17,11 @@ import pog
 pub type GetAlaskaEcoregionRow {
   GetAlaskaEcoregionRow(
     na_l1code: Option(String),
-    na_l1name: Option(String),
+    na_l1name: String,
     na_l2code: Option(String),
-    na_l2name: Option(String),
+    na_l2name: String,
     na_l3code: Option(String),
-    na_l3name: Option(String),
+    na_l3name: String,
   )
 }
 
@@ -38,11 +38,11 @@ pub fn get_alaska_ecoregion(
 ) -> Result(pog.Returned(GetAlaskaEcoregionRow), pog.QueryError) {
   let decoder = {
     use na_l1code <- decode.field(0, decode.optional(decode.string))
-    use na_l1name <- decode.field(1, decode.optional(decode.string))
+    use na_l1name <- decode.field(1, decode.string)
     use na_l2code <- decode.field(2, decode.optional(decode.string))
-    use na_l2name <- decode.field(3, decode.optional(decode.string))
+    use na_l2name <- decode.field(3, decode.string)
     use na_l3code <- decode.field(4, decode.optional(decode.string))
-    use na_l3name <- decode.field(5, decode.optional(decode.string))
+    use na_l3name <- decode.field(5, decode.string)
     decode.success(GetAlaskaEcoregionRow(
       na_l1code:,
       na_l1name:,
@@ -53,7 +53,7 @@ pub fn get_alaska_ecoregion(
     ))
   }
 
-  "SELECT e.\"NA_L1CODE\" as na_l1code, e.\"NA_L1NAME\" as na_l1name,e.\"NA_L2CODE\" as na_l2code, e.\"NA_L2NAME\" as na_l2name,e.\"NA_L3CODE\" as na_l3code, e.\"NA_L3NAME\" as na_l3name  FROM ecoregions_alaska e WHERE ST_CONTAINS(e.geom, ST_POINT($1,$2,4269));
+  "SELECT e.\"NA_L1CODE\" as na_l1code, initcap(e.\"NA_L1NAME\") as na_l1name,e.\"NA_L2CODE\" as na_l2code, initcap(e.\"NA_L2NAME\") as na_l2name,e.\"NA_L3CODE\" as na_l3code, initcap(e.\"NA_L3NAME\") as na_l3name  FROM ecoregions_alaska e WHERE ST_CONTAINS(e.geom, ST_POINT($1,$2,4269));
 "
   |> pog.query
   |> pog.parameter(pog.float(arg_1))
@@ -144,11 +144,11 @@ pub fn get_county(
 pub type GetEcoregionRow {
   GetEcoregionRow(
     na_l1code: Option(String),
-    na_l1name: Option(String),
+    na_l1name: String,
     na_l2code: Option(String),
-    na_l2name: Option(String),
+    na_l2name: String,
     na_l3code: Option(String),
-    na_l3name: Option(String),
+    na_l3name: String,
   )
 }
 
@@ -165,11 +165,11 @@ pub fn get_ecoregion(
 ) -> Result(pog.Returned(GetEcoregionRow), pog.QueryError) {
   let decoder = {
     use na_l1code <- decode.field(0, decode.optional(decode.string))
-    use na_l1name <- decode.field(1, decode.optional(decode.string))
+    use na_l1name <- decode.field(1, decode.string)
     use na_l2code <- decode.field(2, decode.optional(decode.string))
-    use na_l2name <- decode.field(3, decode.optional(decode.string))
+    use na_l2name <- decode.field(3, decode.string)
     use na_l3code <- decode.field(4, decode.optional(decode.string))
-    use na_l3name <- decode.field(5, decode.optional(decode.string))
+    use na_l3name <- decode.field(5, decode.string)
     decode.success(GetEcoregionRow(
       na_l1code:,
       na_l1name:,
@@ -180,7 +180,7 @@ pub fn get_ecoregion(
     ))
   }
 
-  "SELECT e.na_l1code, e.na_l1name,e.na_l2code, e.na_l2name,e.na_l3code, e.na_l3name
+  "SELECT e.na_l1code, initcap(e.na_l1name) as na_l1name,e.na_l2code, initcap(e.na_l2name) as na_l2name,e.na_l3code, initcap(e.na_l3name) as na_l3name
 FROM ecoregions e
 WHERE ST_CONTAINS(e.geometry, ST_POINT($1,$2,4269))
 "

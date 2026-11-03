@@ -17,16 +17,3 @@ export function formatTime(ms, timeZone) {
 export function timeDetails(snow, place) {
   return `It is ${snow.format('time')} in ${place}.`
 }
-
-/*
-import spacetime from 'spacetime'
-
-// Start with a date in Toronto.
-const toronto = spacetime('2026-10-09', 'America/Toronto').time('9:30am')
-
-// View the same moment in another timezone.
-const london = toronto.goto('Europe/London')
-
-// format it, any way:
-const str = london.format('{day-short}, {time}')
-// 'Fri, 2:30pm'*/

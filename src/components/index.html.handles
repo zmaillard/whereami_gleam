@@ -33,13 +33,14 @@
         <div class="content is-size-4">It is <span x-text="currentTime"></span> observing the <strong x-text="timezone"></strong>.  <strong x-text="timezone"></strong> <strong x-text="dstStatement"></strong>.
             Sunrise today is at <strong x-text="sunrise"></strong>.  Sunset is at <strong x-text="sunset"></strong>.  Today, the length of the day is <strong x-text="lengthOfDay"></strong> long.
         </div>
+        <div class="content is-size-4" x-show="firstForecastDetails"><strong x-text="firstForecast"></strong> <span x-text="firstForecastDetails"></span></div>
     </section>
     <section x-show="countyStateFormatted" x-transition class="section">
         <div class="fixed-grid">
             <div class="grid">
                 <div class="cell">
-                    <div class="content is-size-4" x-show="countyStateFormatted">Located in <strong x-text="countyStateFormatted"></strong> <span x-show="elevation">at an elevation of <strong x-text="elevation"></strong>.</span></div>
-                    <div class="content is-size-4" x-show="nearestSummit">The nearest highest location is <strong x-text="nearestSummit"></strong> <span x-show="nearestSummitElevation">at an elevation of <strong x-text="nearestSummitElevation"></strong> (<span x-text="nearestSummitDistance"></span>)</div>
+                    <div class="content is-size-4" x-show="countyStateFormatted">Located in <strong x-text="countyStateFormatted"></strong> <span x-show="elevation">at an elevation of <strong x-text="elevation"></strong>.</span>
+                    <span x-show="nearestSummit">The nearest highest location is <strong x-text="nearestSummit"></strong> <span x-show="nearestSummitElevation">at an elevation of <strong x-text="nearestSummitElevation"></strong> (<span x-text="nearestSummitDistance"></span>)</span></div>
                     <div class="content is-size-4" x-show="nearestNationalPark">The nearest National Park is <strong x-text="nearestNationalPark"></strong> (<span x-text="nearestNationalParkDistance"></span>)</div>
                 </div>
                 <div class="cell">
@@ -52,56 +53,15 @@
         <div class="fixed-grid">
             <div class="grid">
                 <div class="cell">
-                    <!--<div class="map" id="hydroMap"></div>-->
+                    <div id="physicalMap" class="map"></div>
                 </div>
                 <div class="cell">
                     <div class="content is-size-4" x-show="drainage">Water here flows into the <strong x-text="drainage"></strong>.  It is part of the <strong x-text="level3Ecoregion"></strong> ecoregion.</div>
                     <div class="content is-size-4">The waterways that water flows through to the <strong x-text="drainage"></strong> are: <span x-text="hydrographyFormatted"></span> </div>
                     <div class="content is-size-4">The level 2 ecoregion is <strong x-text="level2Ecoregion"></strong>.  The level 1 ecoregion is <strong x-text="level1Ecoregion"></strong>.</div>
+                    <a href="https://www.epa.gov/eco-research/ecoregions-north-america">Ecoregions of North America (US EPA)</a>
                 </div>
             </div>
         </div>
     </section>
-
-
-        <section x-show="results.place" x-transition class="section">
-            <h1 id="ecoregions" class="title" x-text="results.place"></h1>
-            <div class="content is-size-4" x-show="drainage">Water here flows into the <a href="#hydrography"><strong x-text="drainage"></strong></a>.  It is part of the <a href="#ecoregions"><strong x-text="level3Ecoregion">10.1.8 Snake River Plain</strong> ecoregion</a>.</div>
-            <div class="content is-size-4" x-show="lengthOfDay">Sunrise today is at <strong x-text="sunrise">8:15:46 AM</strong>.  Sunset is at <strong x-text="sunset">6:41:20 PM</strong>.  Today, the length of the day is <strong x-text="lengthOfDay">10 hours and 25 minutes</strong> long.  The timezone is <strong x-text="timezone">America/Boise (UTC -6)</strong> and <strong x-text="isDST"></strong>Daylight Saving Time</div>
-            <div class="content is-size-4">The elevation in <strong x-text="results.place">Boise City</strong> is <strong x-text="results.topography.elevation">2792</strong> feet.  The nearest summit is <strong x-text="results.topography.nearest_summit">Table Rock</strong>  to the <span x-text="results.topography.nearest_summit_bearing">SE</span></div>
-            <div class="content is-size-4" x-show="weather"><strong x-text="results.weather.">Today </strong>the weather is forecasted to be <strong>Patchy Fog then Sunny and 56</strong>° F.</div>
-           <div class="content is-size-4">The closest city larger than Boise, City is <strong>Reno, Nevada (329.33 miles to the N)</strong></div>
-               <div class="content is-size-4"></div>
-
-
-
-
-
-            <div class="content is-size-4"><strong x-text="results.place"></strong> is located in <strong x-text="countyStateFormatted"></strong>.
-                It is located in the <strong x-text="timezone"></strong> time zone.
-                Water here flows into the <strong x-text="drainage">Pacific Ocean</strong>.  <span x-show="level1Ecoregion">It is part of the <a href="#ecoregions"><strong x-text="level3Ecoregion">Snake River Plain</strong> ecoregion</a>.</span></div>
-            <div class="content is-size-4">Sunrise today is at <strong x-text="sunrise"></strong>.  Sunset is at <strong x-text="sunset"></strong>.  Today, the length of the day is <strong x-text="lengthOfDay"></strong> long.
-            <div class="content is-size-4">The elevation in <strong x-text="results.place"></strong> is <strong x-text="results.topography.elevation"> </strong> feet.  The nearest summit is <span x-text="results.topography.nearest_summit"></span>  to the <span x-text="results.topography.nearest_summit_bearing"></span>
-        </section>
-<section x-show="level1Ecoregion" class="section">
-  <h1 id="ecoregions" class="title">Ecoregions</h1>
-    <div class="content">
-        <h3 x-text="level1Ecoregion"></h3>
-        <h3 x-text="level2Ecoregion"></h3>
-        <h3 x-text="level3Ecoregion"></h3>
-        <a href="https://www.epa.gov/eco-research/ecoregions-north-america">Ecoregions of North America (US EPA)</a>
-    </div>
-</section>
-<section class="section" x-show="weatherLink">
-  <h1 class="title">Weather Forecast</h1>
-  <div class="content">
-      <h2 x-text="results.weather.forecast_1"></h2>
-      <p x-text="results.weather.forecast_details_1"></p>
-      <h2 x-text="results.weather.forecast_2"></h2>
-      <p x-text="results.weather.forecast_details_2"></p>
-      <a x-bind:href="weatherLink">Weather Forecast by NWS <span x-text="results.weather.office"></span> Office</a>
-  </div>
-
-
-</section>
 </div>

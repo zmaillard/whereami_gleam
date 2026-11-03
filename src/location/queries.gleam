@@ -109,11 +109,11 @@ fn us_ecoregion(
 
   coordinate.Ecoregion(
     option.unwrap(row.na_l1code, ""),
-    option.unwrap(row.na_l1name, ""),
+    row.na_l1name,
     option.unwrap(row.na_l2code, ""),
-    option.unwrap(row.na_l2name, ""),
+    row.na_l2name,
     option.unwrap(row.na_l3code, ""),
-    option.unwrap(row.na_l3name, ""),
+    row.na_l3name,
   )
 }
 
@@ -136,11 +136,11 @@ fn alaska_ecoregion(
 
   coordinate.Ecoregion(
     option.unwrap(row.na_l1code, ""),
-    option.unwrap(row.na_l1name, ""),
+    row.na_l1name,
     option.unwrap(row.na_l2code, ""),
-    option.unwrap(row.na_l2name, ""),
+    row.na_l2name,
     option.unwrap(row.na_l3code, ""),
-    option.unwrap(row.na_l3name, ""),
+    row.na_l3name,
   )
 }
 
@@ -171,10 +171,29 @@ pub fn tide_station(
   )
 }
 
-pub fn watersheds(
+pub fn watersheds_shape(
+  db_conn: pog.Connection,
+  huc: String,
+) -> Result(String, DatabaseError) {
+  let query_result =
+    db_conn
+    |> sql.get_huc_centerline(huc)
+    |> result.map_error(QueryError)
+
+  use pog.Returned(_, rows) <- result.try(query_result)
+  let row =
+    rows
+    |> list.first
+    |> result.replace_error(NoRecordsFoundError)
+
+  use row <- result.map(row)
+  row.st_asgeojson
+}
+
+pub fn huc(
   db_conn: pog.Connection,
   coords: coordinate.Coordinate,
-) -> Result(List(String), DatabaseError) {
+) -> Result(String, DatabaseError) {
   use pog.Returned(_, rows) <- result.try(
     db_conn
     |> sql.get_huc(coords.longitude, coords.latitude)
@@ -187,8 +206,13 @@ pub fn watersheds(
     |> result.replace_error(NoRecordsFoundError),
   )
 
-  let huc_name = row.huc12
+  Ok(row.huc12)
+}
 
+pub fn watersheds(
+  db_conn: pog.Connection,
+  huc_name: String,
+) -> Result(List(String), DatabaseError) {
   use pog.Returned(_, huc_rows) <- result.try(
     db_conn
     |> sql.get_huc_closure(huc_name)

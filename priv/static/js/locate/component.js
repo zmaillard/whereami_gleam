@@ -1,10 +1,13 @@
 import { lengthOfDay, formatTime } from "./format.js";
+import { createLayerRegistry } from "./layers.js";
+import spacetime from 'spacetime';
 
 export function locateComponent({
   api,
   searchApi,
   geolocation = navigator.geolocation,
   mapboxToken = "",
+  L = window.L,
 } = {}) {
   return {
     latitude: "",
@@ -19,7 +22,9 @@ export function locateComponent({
     showSearch: false,
     isCurrentLocation: true,
     countyMap: null,
-    markers: {},
+    physicalMap: null,
+    layers: null,
+    layersPhysical: null,
     results: {
     },
     options: {
@@ -163,6 +168,12 @@ export function locateComponent({
       if (!("weather" in this.results)) return "";
       return `https://www.weather.gov/${this.results.weather.office_abbreviation}`
     },
+    firstForecast() {
+      return this.results?.weather?.forecast_1;
+    },
+    firstForecastDetails() {
+      return this.results?.weather?.forecast_details_1;
+    },
     level1Ecoregion() {
       if (!("ecoregions" in this.results)) return "";
       return this.results.ecoregions.level1;
@@ -196,47 +207,52 @@ export function locateComponent({
       }
       return "";
     },
+    setPhysicalMap() {
+      if (!this.physicalMap) {
+        this.physicalMap = L.map('physicalMap', {scrollWheelZoom: false}).setView([this.latitude, this.longitude], 8);
+        L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+        }).addTo(this.physicalMap);
+
+        this.layersPhysical = createLayerRegistry({ L, map: this.physicalMap });
+        this.layersPhysical.add("place", () => L.marker([this.latitude, this.longitude]));
+      }
+
+      if (this.results?.drainageShape) {
+        this.layersPhysical.add("drainage", () => L.geoJSON(JSON.parse(this.results.drainageShape), {}));
+      }
+    },
     setCountyMap() {
       if (!this.countyMap) {
-        this.countyMap = L.map('countyMap').setView([this.latitude, this.longitude], 8);
+        this.countyMap = L.map('countyMap', {scrollWheelZoom: false}).setView([this.latitude, this.longitude], 8);
         L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
             maxZoom: 19,
             attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
         }).addTo(this.countyMap);
 
-        this.markers["place"] = L.marker([this.latitude, this.longitude])
-        this.markers["place"].addTo(this.countyMap);
+        this.layers = createLayerRegistry({ L, map: this.countyMap });
+        this.layers.add("place", () => L.marker([this.latitude, this.longitude]));
       }
 
-      if (!("nationalPark" in this.markers) && (this.results?.nearestNationalPark?.latitude && this.results?.nearestNationalPark?.longitude)) {
-        this.markers["nationalPark"] = L.marker([this.results?.nearestNationalPark?.latitude, this.results?.nearestNationalPark?.longitude])
-        this.markers["nationalPark"].addTo(this.countyMap);
+      if (this.results?.nearestNationalPark?.latitude && this.results?.nearestNationalPark?.longitude) {
+        this.layers.add("nationalPark", () => L.marker([this.results.nearestNationalPark.latitude, this.results.nearestNationalPark.longitude]));
       }
 
-      if (!("county" in this.markers) && this.results?.countyShape) {
-        this.markers["county"] = L.geoJSON(JSON.parse(this.results.countyShape), {})
-        this.markers["county"].addTo(this.countyMap);
+      if (this.results?.countyShape) {
+        this.layers.add("county", () => L.geoJSON(JSON.parse(this.results.countyShape), {}));
       }
 
-      if (!("summit" in this.markers) && (this.results?.topography?.nearestSummitLatitude && this.results?.topography?.nearestSummitLongitude)) {
-        this.markers["summit"] = L.marker([this.results?.topography?.nearestSummitLatitude, this.results?.topography?.nearestSummitLongitude])
-        this.markers["summit"].addTo(this.countyMap);
+      if ((this.results?.topography?.nearestSummitLatitude && this.results?.topography?.nearestSummitLongitude)) {
+        this.layers.add("summit", () => L.marker([this.results?.topography?.nearestSummitLatitude, this.results?.topography?.nearestSummitLongitude]));
       }
     },
     clearMarkers() {
-      if (this.markers && this.countyMap) {
-        for (let i = 0; i <= Object.keys(this.markers).length - 1; i++) {
-          let key = Object.keys(this.markers)[i];
+      if (!this.countyMap) return;
+      this.layers.clear();
 
-          this.countyMap.removeLayer(this.markers[key]);
-        }
-        for (let member in this.markers) delete this.markers[member];
-      }
-      if (this.countyMap) {
-        this.countyMap.setView([this.latitude, this.longitude], 8);
-        this.markers["place"] = L.marker([this.latitude, this.longitude])
-        this.markers["place"].addTo(this.countyMap);
-      }
+      this.countyMap.setView([this.latitude, this.longitude], 8);
+      this.layers.add("place", () => L.marker([this.latitude, this.longitude]));
     },
     locate(e) {
       this.loadingResults = true;
@@ -276,6 +292,7 @@ export function locateComponent({
         .then((r) => {
           if (r.drainage) {
             self.results.drainage = r.drainage;
+            self.results.drainageShape = r.drainageShape;
           }
           if (r.ecoregions) {
             self.results.ecoregions = {
@@ -284,6 +301,7 @@ export function locateComponent({
               level3: r.ecoregions.level3,
             };
           }
+          self.setPhysicalMap();
         });
 
       let forecastPromise = api.forecast(coords)

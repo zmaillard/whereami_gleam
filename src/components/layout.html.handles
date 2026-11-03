@@ -40,7 +40,7 @@ dd {
             <div class="content has-text-centered">
               <p>
                 <strong>Where Am I?</strong> by <a href="https://zachmaillard.xyz">Zach Maillard</a> <br/>
-                <a href="/">Text Search</a> | <a href="/map">Map Search</a> | <a href="/about">About</a>  <br/>
+                <a href="/">Text Search</a> | <a href="/about">About</a>  <br/>
                 <a href="https://github.com/zmaillard/whereami/releases/tag/{ version }">{{ version }}</a>
               </p>
             </div>
