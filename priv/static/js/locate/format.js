@@ -1,18 +1,3 @@
-export function getPlace(reverseGeocode) {
-  if (reverseGeocode) {
-    return `${reverseGeocode.place}, ${reverseGeocode.state}`;
-  }
-  return "";
-}
-
-
-export function getAbbreviatedPlace(reverseGeocode) {
-  if (reverseGeocode) {
-    return reverseGeocode.place;
-  }
-  return "";
-}
-
 export function lengthOfDay({ sunrise, sunset }) {
   const milliseconds = Math.abs(sunset - sunrise);
   const secs = Math.floor(Math.abs(milliseconds) / 1000);
@@ -22,6 +7,13 @@ export function lengthOfDay({ sunrise, sunset }) {
   return `${hours % 24} hours and ${mins % 60} minutes`
 }
 
-export function formatTime(ms) {
-  return new Date(ms).toLocaleTimeString("en-US");
+export function formatTime(ms, timeZone) {
+
+  return new Date(ms).toLocaleTimeString("en-US", {
+    timeZone
+  });
+}
+
+export function timeDetails(snow, place) {
+  return `It is ${snow.format('time')} in ${place}.`
 }

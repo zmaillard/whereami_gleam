@@ -28,6 +28,8 @@
     "vitest": "^4.1.12"
   },
   "dependencies": {
-    "alpinejs": "^3.17.5"
+    "alpinejs": "^3.17.5",
+    "lenis": "^1.3.27",
+    "spacetime": "^7.17.0"
   }
 }

@@ -19,10 +19,7 @@
                     </div>
                 </div>
                 <div x-show="hasplace">
-                    <!--<form id="locationForm" method="POST" action="/" >-->
-                    <!--<button class="button is-primary" data-loading-class="is-loading" data-loading-disable hx-post="/details" hx-target="#details"  hx-swap="show:#details:top" x-text="detailsButtonText"></button>-->
-                    <button @click="locate" class="button is-primary"  x-text="detailsButtonText"></button>
-
+                    <button @click="locate" :class="loadingResults && 'is-loading'" class="button is-primary"  x-text="detailsButtonText"></button>
                     <input name="lat" type="hidden" id="latitude" name="latitude" x-model="latitude" />
                     <input name="lng" type="hidden" id="longitude" name="longitude" x-model="longitude"  />
                 </div>
@@ -31,35 +28,40 @@
 
     <div x-show="showSearch">
     </div>
-    <section x-show="hasPlace" class="section">
-        <div class="content is-size-4"><strong x-text="results.place"></strong> is located in <strong x-text="countyStateFormatted"></strong>.
-            It is located in the <strong x-text="timezone"></strong> time zone.
-            Water here flows into the <strong x-text="drainage">Pacific Ocean</strong>.  It is part of the <strong x-text="level3Ecoregion">Snake River Plain</strong> ecoregion.</div>
-        <div class="content is-size-4">Sunrise today is at <strong x-text="sunrise"></strong>.  Sunset is at <strong x-text="sunset"></strong>.  Today is <strong x-text="lengthOfDay"></strong> long.
+    <section x-show="lengthOfDay" x-transition class="section">
+        <h1 class="title" x-text="titleText"></h1>
+        <div class="content is-size-4">It is <span x-text="currentTime"></span> observing the <strong x-text="timezone"></strong>.  <strong x-text="timezone"></strong> <strong x-text="dstStatement"></strong>.
+            Sunrise today is at <strong x-text="sunrise"></strong>.  Sunset is at <strong x-text="sunset"></strong>.  Today, the length of the day is <strong x-text="lengthOfDay"></strong> long.
+        </div>
+        <div class="content is-size-4" x-show="firstForecastDetails"><strong x-text="firstForecast"></strong> <span x-text="firstForecastDetails"></span></div>
     </section>
-<section x-show="hasPlace" class="section">
-  <h1 class="title">Place Details</h1>
-    <div class="content">
-        <table>
-           <tbody>
-               <tr>
-                   <th>Coordinates</th>
-                   <td>46.1891, -123.8327</td>
-                   <th>Time Zone</th>
-                   <td>America/Los_Angeles (Local Time: 2026-10-20 17:21:52)</td>
-               </tr>
-               <tr>
-                   <th>Sunrise</th>
-                   <td>7:41AM -0700</td>
-                   <th>Sunset</th>
-                   <td>6:18PM -0700</td>
-               </tr>
-           </tbody>
-        </table>
-    </div>
-</section>
-<section class="section">
-  <h1 class="title">Forecast</h1>
-  <h2 class="subtitle">Weather</h2>
-</section>
+    <section x-show="countyStateFormatted" x-transition class="section">
+        <div class="fixed-grid">
+            <div class="grid">
+                <div class="cell">
+                    <div class="content is-size-4" x-show="countyStateFormatted">Located in <strong x-text="countyStateFormatted"></strong> <span x-show="elevation">at an elevation of <strong x-text="elevation"></strong>.</span>
+                    <span x-show="nearestSummit">The nearest highest location is <strong x-text="nearestSummit"></strong> <span x-show="nearestSummitElevation">at an elevation of <strong x-text="nearestSummitElevation"></strong> (<span x-text="nearestSummitDistance"></span>)</span></div>
+                    <div class="content is-size-4" x-show="nearestNationalPark">The nearest National Park is <strong x-text="nearestNationalPark"></strong> (<span x-text="nearestNationalParkDistance"></span>)</div>
+                </div>
+                <div class="cell">
+                    <div class="map" id="countyMap"></div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <section x-show="hydrographyFormatted" x-transition class="section">
+        <div class="fixed-grid">
+            <div class="grid">
+                <div class="cell">
+                    <div id="physicalMap" class="map"></div>
+                </div>
+                <div class="cell">
+                    <div class="content is-size-4" x-show="drainage">Water here flows into the <strong x-text="drainage"></strong>.  It is part of the <strong x-text="level3Ecoregion"></strong> ecoregion.</div>
+                    <div class="content is-size-4">The waterways that water flows through to the <strong x-text="drainage"></strong> are: <span x-text="hydrographyFormatted"></span> </div>
+                    <div class="content is-size-4">The level 2 ecoregion is <strong x-text="level2Ecoregion"></strong>.  The level 1 ecoregion is <strong x-text="level1Ecoregion"></strong>.</div>
+                    <a href="https://www.epa.gov/eco-research/ecoregions-north-america">Ecoregions of North America (US EPA)</a>
+                </div>
+            </div>
+        </div>
+    </section>
 </div>

@@ -171,11 +171,17 @@ pub type CongressionalDistrict {
 }
 
 pub type County {
-  County(name: String, state: String)
+  County(name: String, state: String, shape: String)
 }
 
 pub type NationalPark {
-  NationalPark(name: String, distance: Float, bearing: String)
+  NationalPark(
+    name: String,
+    distance: Float,
+    bearing: String,
+    latitude: Float,
+    longitude: Float,
+  )
 }
 
 pub type WeatherForecast {
@@ -184,16 +190,31 @@ pub type WeatherForecast {
     sunrise: String,
     sunset: String,
     time_zone: String,
+    forecast1_temperature: Option(Int),
+    forecast1_short_forecast: Option(String),
+    forecast1_wind_speed: Option(String),
+    forecast1_wind_direction: Option(String),
     forecast1: Option(String),
     forecast1_details: Option(String),
     forecast2: Option(String),
     forecast2_details: Option(String),
+    forecast2_temperature: Option(Int),
+    forecast2_short_forecast: Option(String),
+    forecast2_wind_speed: Option(String),
+    forecast2_wind_direction: Option(String),
     elevation: Float,
   )
 }
 
 pub type Summit {
-  Summit(name: String, elevation: Float, distance: Float, bearing: String)
+  Summit(
+    name: String,
+    elevation: Float,
+    distance: Float,
+    bearing: String,
+    latitude: Float,
+    longitude: Float,
+  )
 }
 
 pub type PopulatedPlace {

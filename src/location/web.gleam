@@ -4,6 +4,7 @@ import gleam/dynamic/decode
 import gleam/float
 import gleam/http/request
 import gleam/httpc
+import gleam/int
 import gleam/json
 import gleam/list
 import gleam/option
@@ -67,7 +68,14 @@ type ForecastResponse {
 }
 
 type Period {
-  Period(name: String, detailed_forecast: String)
+  Period(
+    name: String,
+    detailed_forecast: String,
+    short_forecast: String,
+    wind_speed: String,
+    wind_direction: String,
+    temperature: Int,
+  )
 }
 
 fn forecast_from_json(
@@ -76,7 +84,18 @@ fn forecast_from_json(
   let period_decoder = {
     use name <- decode.field("name", decode.string)
     use detailed_forecast <- decode.field("detailedForecast", decode.string)
-    decode.success(Period(name:, detailed_forecast:))
+    use short_forecast <- decode.field("shortForecast", decode.string)
+    use wind_speed <- decode.field("windSpeed", decode.string)
+    use wind_direction <- decode.field("windDirection", decode.string)
+    use temperature <- decode.field("temperature", decode.int)
+    decode.success(Period(
+      name:,
+      detailed_forecast:,
+      short_forecast:,
+      wind_speed:,
+      wind_direction:,
+      temperature:,
+    ))
   }
 
   let forecast_decoder = {
@@ -86,7 +105,8 @@ fn forecast_from_json(
     )
     use elevation <- decode.subfield(
       ["properties", "elevation", "value"],
-      decode.float,
+      decode.one_of(decode.float, or: [decode.int |> decode.map(int.to_float)])
+        |> decode.map(fn(x) { x *. 3.281 }),
     )
 
     decode.success(ForecastResponse(elevation, items))
@@ -138,10 +158,22 @@ pub fn weather(
       sunrise: value.sunrise,
       sunset: value.sunset,
       time_zone: value.time_zone,
+      forecast1_temperature: forecast1 |> option.map(fn(f) { f.temperature }),
+      forecast1_short_forecast: forecast1
+        |> option.map(fn(f) { f.short_forecast }),
+      forecast1_wind_speed: forecast1 |> option.map(fn(f) { f.wind_speed }),
+      forecast1_wind_direction: forecast1
+        |> option.map(fn(f) { f.wind_direction }),
       forecast1: forecast1 |> option.map(fn(f) { f.name }),
       forecast1_details: forecast1 |> option.map(fn(f) { f.detailed_forecast }),
       forecast2: forecast2 |> option.map(fn(f) { f.name }),
       forecast2_details: forecast2 |> option.map(fn(f) { f.detailed_forecast }),
+      forecast2_temperature: forecast1 |> option.map(fn(f) { f.temperature }),
+      forecast2_short_forecast: forecast2
+        |> option.map(fn(f) { f.short_forecast }),
+      forecast2_wind_speed: forecast2 |> option.map(fn(f) { f.wind_speed }),
+      forecast2_wind_direction: forecast2
+        |> option.map(fn(f) { f.wind_direction }),
       elevation: forecast_value.elevation,
     )
 

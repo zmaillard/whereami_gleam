@@ -29,13 +29,15 @@ fn result_json(
   national_park: Option(coordinate.NationalPark),
 ) -> String {
   let nearest_park = case national_park {
-    Some(coordinate.NationalPark(name, distance, bearing)) -> [
+    Some(coordinate.NationalPark(name, distance, bearing, latitude, longitude)) -> [
       #(
         "nearestNationalPark",
         json.object([
           #("name", json.string(name)),
           #("distance", json.float(distance)),
           #("bearing", json.string(bearing)),
+          #("latitude", json.float(latitude)),
+          #("longitude", json.float(longitude)),
         ]),
       ),
     ]
@@ -47,6 +49,7 @@ fn result_json(
 
   let county_json = [
     #("county", json.string(county.name)),
+    #("countyShape", json.string(county.shape)),
     #(
       "state",
       json.nullable(state.state_name_from_fips(county.state), of: json.string),

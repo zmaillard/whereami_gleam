@@ -17,11 +17,11 @@ import pog
 pub type GetAlaskaEcoregionRow {
   GetAlaskaEcoregionRow(
     na_l1code: Option(String),
-    na_l1name: Option(String),
+    na_l1name: String,
     na_l2code: Option(String),
-    na_l2name: Option(String),
+    na_l2name: String,
     na_l3code: Option(String),
-    na_l3name: Option(String),
+    na_l3name: String,
   )
 }
 
@@ -38,11 +38,11 @@ pub fn get_alaska_ecoregion(
 ) -> Result(pog.Returned(GetAlaskaEcoregionRow), pog.QueryError) {
   let decoder = {
     use na_l1code <- decode.field(0, decode.optional(decode.string))
-    use na_l1name <- decode.field(1, decode.optional(decode.string))
+    use na_l1name <- decode.field(1, decode.string)
     use na_l2code <- decode.field(2, decode.optional(decode.string))
-    use na_l2name <- decode.field(3, decode.optional(decode.string))
+    use na_l2name <- decode.field(3, decode.string)
     use na_l3code <- decode.field(4, decode.optional(decode.string))
-    use na_l3name <- decode.field(5, decode.optional(decode.string))
+    use na_l3name <- decode.field(5, decode.string)
     decode.success(GetAlaskaEcoregionRow(
       na_l1code:,
       na_l1name:,
@@ -53,7 +53,7 @@ pub fn get_alaska_ecoregion(
     ))
   }
 
-  "SELECT e.\"NA_L1CODE\" as na_l1code, e.\"NA_L1NAME\" as na_l1name,e.\"NA_L2CODE\" as na_l2code, e.\"NA_L2NAME\" as na_l2name,e.\"NA_L3CODE\" as na_l3code, e.\"NA_L3NAME\" as na_l3name  FROM ecoregions_alaska e WHERE ST_CONTAINS(e.geom, ST_POINT($1,$2,4269));
+  "SELECT e.\"NA_L1CODE\" as na_l1code, initcap(e.\"NA_L1NAME\") as na_l1name,e.\"NA_L2CODE\" as na_l2code, initcap(e.\"NA_L2NAME\") as na_l2name,e.\"NA_L3CODE\" as na_l3code, initcap(e.\"NA_L3NAME\") as na_l3name  FROM ecoregions_alaska e WHERE ST_CONTAINS(e.geom, ST_POINT($1,$2,4269));
 "
   |> pog.query
   |> pog.parameter(pog.float(arg_1))
@@ -105,7 +105,7 @@ pub fn get_congressional_district(
 /// > [squirrel package](https://github.com/giacomocavalieri/squirrel).
 ///
 pub type GetCountyRow {
-  GetCountyRow(name: Option(String), state: Option(String))
+  GetCountyRow(name: Option(String), state: Option(String), shape: String)
 }
 
 /// Runs the `get_county` query
@@ -122,10 +122,11 @@ pub fn get_county(
   let decoder = {
     use name <- decode.field(0, decode.optional(decode.string))
     use state <- decode.field(1, decode.optional(decode.string))
-    decode.success(GetCountyRow(name:, state:))
+    use shape <- decode.field(2, decode.string)
+    decode.success(GetCountyRow(name:, state:, shape:))
   }
 
-  "SELECT c.\"NAMELSAD\" as name,c.\"STATEFP\" as state FROM county c WHERE ST_CONTAINS(c.geom, ST_POINT($1,$2,4269));
+  "SELECT c.\"NAMELSAD\" as name,c.\"STATEFP\" as state, ST_AsGeoJson(c.geom) as shape FROM county c WHERE ST_CONTAINS(c.geom, ST_POINT($1,$2,4269));
 "
   |> pog.query
   |> pog.parameter(pog.float(arg_1))
@@ -143,11 +144,11 @@ pub fn get_county(
 pub type GetEcoregionRow {
   GetEcoregionRow(
     na_l1code: Option(String),
-    na_l1name: Option(String),
+    na_l1name: String,
     na_l2code: Option(String),
-    na_l2name: Option(String),
+    na_l2name: String,
     na_l3code: Option(String),
-    na_l3name: Option(String),
+    na_l3name: String,
   )
 }
 
@@ -164,11 +165,11 @@ pub fn get_ecoregion(
 ) -> Result(pog.Returned(GetEcoregionRow), pog.QueryError) {
   let decoder = {
     use na_l1code <- decode.field(0, decode.optional(decode.string))
-    use na_l1name <- decode.field(1, decode.optional(decode.string))
+    use na_l1name <- decode.field(1, decode.string)
     use na_l2code <- decode.field(2, decode.optional(decode.string))
-    use na_l2name <- decode.field(3, decode.optional(decode.string))
+    use na_l2name <- decode.field(3, decode.string)
     use na_l3code <- decode.field(4, decode.optional(decode.string))
-    use na_l3name <- decode.field(5, decode.optional(decode.string))
+    use na_l3name <- decode.field(5, decode.string)
     decode.success(GetEcoregionRow(
       na_l1code:,
       na_l1name:,
@@ -179,7 +180,7 @@ pub fn get_ecoregion(
     ))
   }
 
-  "SELECT e.na_l1code, e.na_l1name,e.na_l2code, e.na_l2name,e.na_l3code, e.na_l3name
+  "SELECT e.na_l1code, initcap(e.na_l1name) as na_l1name,e.na_l2code, initcap(e.na_l2name) as na_l2name,e.na_l3code, initcap(e.na_l3name) as na_l3name
 FROM ecoregions e
 WHERE ST_CONTAINS(e.geometry, ST_POINT($1,$2,4269))
 "
@@ -197,7 +198,7 @@ WHERE ST_CONTAINS(e.geometry, ST_POINT($1,$2,4269))
 /// > [squirrel package](https://github.com/giacomocavalieri/squirrel).
 ///
 pub type GetHucRow {
-  GetHucRow(huc12: Option(String))
+  GetHucRow(huc12: String)
 }
 
 /// Runs the `get_huc` query
@@ -212,7 +213,7 @@ pub fn get_huc(
   arg_2: Float,
 ) -> Result(pog.Returned(GetHucRow), pog.QueryError) {
   let decoder = {
-    use huc12 <- decode.field(0, decode.optional(decode.string))
+    use huc12 <- decode.field(0, decode.string)
     decode.success(GetHucRow(huc12:))
   }
 
@@ -221,6 +222,44 @@ pub fn get_huc(
   |> pog.query
   |> pog.parameter(pog.float(arg_1))
   |> pog.parameter(pog.float(arg_2))
+  |> pog.returning(decoder)
+  |> pog.execute(db)
+}
+
+/// A row you get from running the `get_huc_centerline` query
+/// defined in `./src/sql/get_huc_centerline.sql`.
+///
+/// > 🐿️ This type definition was generated automatically using v4.7.0 of the
+/// > [squirrel package](https://github.com/giacomocavalieri/squirrel).
+///
+pub type GetHucCenterlineRow {
+  GetHucCenterlineRow(st_asgeojson: String)
+}
+
+/// Runs the `get_huc_centerline` query
+/// defined in `./src/sql/get_huc_centerline.sql`.
+///
+/// > 🐿️ This function was generated automatically using v4.7.0 of
+/// > the [squirrel package](https://github.com/giacomocavalieri/squirrel).
+///
+pub fn get_huc_centerline(
+  db: pog.Connection,
+  start_huc12: String,
+) -> Result(pog.Returned(GetHucCenterlineRow), pog.QueryError) {
+  let decoder = {
+    use st_asgeojson <- decode.field(0, decode.string)
+    decode.success(GetHucCenterlineRow(st_asgeojson:))
+  }
+
+  "select ST_AsGeoJson(ST_MakeLine(i.pt)) from  (
+    select ST_PointN(st_boundary(wbdhu12.shape),1) as pt
+    from huc_downstream_paths
+    inner join wbdhu12 on huc_downstream_paths.huc12 = wbdhu12.huc12
+where start_huc12 = $1
+order by depth) i
+"
+  |> pog.query
+  |> pog.parameter(pog.text(start_huc12))
   |> pog.returning(decoder)
   |> pog.execute(db)
 }
@@ -243,20 +282,19 @@ pub type GetHucClosureRow {
 ///
 pub fn get_huc_closure(
   db: pog.Connection,
-  parenthuc: String,
+  start_huc12: String,
 ) -> Result(pog.Returned(GetHucClosureRow), pog.QueryError) {
   let decoder = {
     use name <- decode.field(0, decode.optional(decode.string))
     decode.success(GetHucClosureRow(name:))
   }
 
-  "select WBDHU12.name
-from hucclosure
-         inner join WBDHU12 on childhuc = WBDHU12.huc12
-where parenthuc = $1 order by depth;
+  "select wbdhu12.name from huc_downstream_paths
+         inner join wbdhu12 on huc_downstream_paths.huc12 = wbdhu12.huc12
+         where start_huc12 = $1 order by depth;
 "
   |> pog.query
-  |> pog.parameter(pog.text(parenthuc))
+  |> pog.parameter(pog.text(start_huc12))
   |> pog.returning(decoder)
   |> pog.execute(db)
 }
@@ -305,7 +343,13 @@ WHERE ST_CONTAINS(p.\"SHAPE\", ST_POINT($1,$2,4269));
 /// > [squirrel package](https://github.com/giacomocavalieri/squirrel).
 ///
 pub type GetNearestNationalParkRow {
-  GetNearestNationalParkRow(name: Option(String), dist: Float, bearing: Float)
+  GetNearestNationalParkRow(
+    name: Option(String),
+    dist: Float,
+    bearing: Float,
+    longitude: Float,
+    latitude: Float,
+  )
 }
 
 /// Runs the `get_nearest_national_park` query
@@ -323,7 +367,15 @@ pub fn get_nearest_national_park(
     use name <- decode.field(0, decode.optional(decode.string))
     use dist <- decode.field(1, decode.float)
     use bearing <- decode.field(2, decode.float)
-    decode.success(GetNearestNationalParkRow(name:, dist:, bearing:))
+    use longitude <- decode.field(3, decode.float)
+    use latitude <- decode.field(4, decode.float)
+    decode.success(GetNearestNationalParkRow(
+      name:,
+      dist:,
+      bearing:,
+      longitude:,
+      latitude:,
+    ))
   }
 
   "WITH constants (pt) as (
@@ -331,7 +383,9 @@ pub fn get_nearest_national_park(
 )
 select name as name,
        shape::geography <-> pt as dist,
-       degrees(st_azimuth(pt, st_centroid(shape))) as bearing
+       degrees(st_azimuth(pt, st_centroid(shape))) as bearing,
+       ST_X(ST_Centroid(shape)) as longitude,
+       ST_Y(ST_Centroid(shape)) as latitude
 from national_park_service, constants
 ORDER BY dist
 LIMIT 1;
@@ -416,6 +470,8 @@ pub type GetNearestSummitRow {
     dist: Float,
     elevation: Option(Float),
     bearing: Float,
+    longitude: Float,
+    latitude: Float,
   )
 }
 
@@ -436,11 +492,15 @@ pub fn get_nearest_summit(
     use dist <- decode.field(1, decode.float)
     use elevation <- decode.field(2, decode.optional(pog.numeric_decoder()))
     use bearing <- decode.field(3, decode.float)
+    use longitude <- decode.field(4, decode.float)
+    use latitude <- decode.field(5, decode.float)
     decode.success(GetNearestSummitRow(
       feature_name:,
       dist:,
       elevation:,
       bearing:,
+      longitude:,
+      latitude:,
     ))
   }
 
@@ -450,7 +510,9 @@ pub fn get_nearest_summit(
 select feature_name,
        geom::geography <-> pt as dist,
        elevation,
-       degrees(st_azimuth(pt, geom)) as bearing
+       degrees(st_azimuth(pt, geom)) as bearing,
+       ST_X(geom) as longitude,
+       ST_Y(geom) as latitude
 from gnis, constants
 where feature_class = 'Summit' and elevation > $3
 ORDER BY dist

@@ -1,27 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { getPlace, getAbbreviatedPlace, lengthOfDay, formatTime } from "../../priv/static/js/locate/format.js";
 
-describe("getPlace", () => {
-  it("joins place and state", () => {
-    expect(getPlace({ place: "Boise", state: "ID" })).toBe("Boise, ID");
-  });
-
-  it("returns empty string for falsy input", () => {
-    expect(getPlace(null)).toBe("");
-    expect(getPlace(undefined)).toBe("");
-  });
-});
-
-describe("getAbbreviatedPlace", () => {
-  it("returns the place field", () => {
-    expect(getAbbreviatedPlace({ place: "Boise" })).toBe("Boise");
-  });
-
-  it("returns empty string when missing", () => {
-    expect(getAbbreviatedPlace(null)).toBe("");
-  });
-});
-
 describe("lengthOfDay", () => {
   it("formats hours and minutes", () => {
     const sunrise = Date.parse("2024-06-01T06:00:00Z");
@@ -35,8 +14,10 @@ describe("lengthOfDay", () => {
 });
 
 describe("formatTime", () => {
-  it("formats a timestamp as a locale time string", () => {
-    const ms = Date.parse("2024-06-01T18:30:00Z");
-    expect(formatTime(ms)).toBe(new Date(ms).toLocaleTimeString("en-US"));
+  it("formats time in the given timezone, not the local one", () => {
+    const ms = Date.parse("2026-10-25T18:06:44-07:00");
+    expect(formatTime(ms, "America/Boise")).toBe(
+      new Date(ms).toLocaleTimeString("en-US", { timeZone: "America/Boise" }),
+    );
   });
 });
