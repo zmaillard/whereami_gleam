@@ -217,7 +217,7 @@ pub fn get_huc(
     decode.success(GetHucRow(huc12:))
   }
 
-  "SELECT h.huc12 FROM wbdhu12 h WHERE ST_CONTAINS(h.shape,ST_POINT($1,$2, 4269));
+  "SELECT h.huc12 FROM wbdhu12 h WHERE ST_CONTAINS(h.shape,ST_BUFFER(ST_POINT($1,$2, 4269), 0.1));
 "
   |> pog.query
   |> pog.parameter(pog.float(arg_1))

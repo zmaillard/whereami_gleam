@@ -28,7 +28,7 @@
 
     <div x-show="showSearch">
     </div>
-    <section x-show="lengthOfDay" x-transition class="section">
+    <section x-show="lengthOfDay" x-transition class="section results-section">
         <h1 class="title" x-text="titleText"></h1>
         <div class="content is-size-4">It is <span x-text="currentTime"></span> observing the <strong x-text="timezone"></strong>.  <strong x-text="timezone"></strong> <strong x-text="dstStatement"></strong>.
             Sunrise today is at <strong x-text="sunrise"></strong>.  Sunset is at <strong x-text="sunset"></strong>.  Today, the length of the day is <strong x-text="lengthOfDay"></strong> long.
@@ -42,6 +42,8 @@
                     <div class="content is-size-4" x-show="countyStateFormatted">Located in <strong x-text="countyStateFormatted"></strong> <span x-show="elevation">at an elevation of <strong x-text="elevation"></strong>.</span>
                     <span x-show="nearestSummit">The nearest highest location is <strong x-text="nearestSummit"></strong> <span x-show="nearestSummitElevation">at an elevation of <strong x-text="nearestSummitElevation"></strong> (<span x-text="nearestSummitDistance"></span>)</span></div>
                     <div class="content is-size-4" x-show="nearestNationalPark">The nearest National Park is <strong x-text="nearestNationalPark"></strong> (<span x-text="nearestNationalParkDistance"></span>)</div>
+                    <div class="content is-size-4" x-show="drainage">Water here flows into the <strong x-text="drainage"></strong>.</div>
+                    <div class="content is-size-4" x-show="level3Ecoregion">It is part of the <strong x-text="level3Ecoregion"></strong> ecoregion.</div>
                 </div>
                 <div class="cell">
                     <div class="map" id="countyMap"></div>
@@ -50,18 +52,8 @@
         </div>
     </section>
     <section x-show="hydrographyFormatted" x-transition class="section">
-        <div class="fixed-grid">
-            <div class="grid">
-                <div class="cell">
-                    <div id="physicalMap" class="map"></div>
-                </div>
-                <div class="cell">
-                    <div class="content is-size-4" x-show="drainage">Water here flows into the <strong x-text="drainage"></strong>.  It is part of the <strong x-text="level3Ecoregion"></strong> ecoregion.</div>
-                    <div class="content is-size-4">The waterways that water flows through to the <strong x-text="drainage"></strong> are: <span x-text="hydrographyFormatted"></span> </div>
-                    <div class="content is-size-4">The level 2 ecoregion is <strong x-text="level2Ecoregion"></strong>.  The level 1 ecoregion is <strong x-text="level1Ecoregion"></strong>.</div>
-                    <a href="https://www.epa.gov/eco-research/ecoregions-north-america">Ecoregions of North America (US EPA)</a>
-                </div>
-            </div>
-        </div>
+        <div class="content is-size-4">The waterways that water flows through to the <strong x-text="drainage"></strong> are: <span x-text="hydrographyFormatted"></span> </div>
+        <div class="content is-size-4">The level 2 ecoregion is <strong x-text="level2Ecoregion"></strong>.  The level 1 ecoregion is <strong x-text="level1Ecoregion"></strong>.</div>
+        <a href="https://www.epa.gov/eco-research/ecoregions-north-america">Ecoregions of North America (US EPA)</a>
     </section>
 </div>
