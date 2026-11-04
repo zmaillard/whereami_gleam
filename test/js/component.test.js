@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { locateComponent } from "../../priv/static/js/locate/component.js";
+import spacetime from "spacetime";
 
 function makeGeolocation(result) {
   return {
@@ -21,7 +22,7 @@ function makeApi(overrides = {}) {
 }
 
 function makeL() {
-  const mapInstance = { setView: vi.fn() };
+  const mapInstance = { setView: vi.fn(), invalidateSize: vi.fn() };
   mapInstance.setView.mockReturnValue(mapInstance);
   const group = { addTo: vi.fn().mockReturnThis(), addLayer: vi.fn(), clearLayers: vi.fn() };
   return {
@@ -78,7 +79,7 @@ describe("locateComponent", () => {
       })),
     });
     const { L } = makeL();
-    const c = locateComponent({ api, geolocation: makeGeolocation({ position: { coords: {} } }), L });
+    const c = locateComponent({ api, geolocation: makeGeolocation({ position: { coords: {} } }), L, spacetime, nextTick: (fn) => fn() });
     c.latitude = 43.6;
     c.longitude = -116.2;
 
@@ -112,7 +113,7 @@ describe("locateComponent", () => {
 
   it("setCountyMap creates the map only once", () => {
     const { L } = makeL();
-    const c = locateComponent({ api: makeApi(), geolocation: makeGeolocation({ position: { coords: {} } }), L });
+    const c = locateComponent({ api: makeApi(), geolocation: makeGeolocation({ position: { coords: {} } }), L, nextTick: (fn) => fn() });
     c.latitude = 43.6;
     c.longitude = -116.2;
 
@@ -124,7 +125,7 @@ describe("locateComponent", () => {
 
   it("setCountyMap adds a place marker at the current coordinates", () => {
     const { L } = makeL();
-    const c = locateComponent({ api: makeApi(), geolocation: makeGeolocation({ position: { coords: {} } }), L });
+    const c = locateComponent({ api: makeApi(), geolocation: makeGeolocation({ position: { coords: {} } }), L, nextTick: (fn) => fn() });
     c.latitude = 43.6;
     c.longitude = -116.2;
 
@@ -135,7 +136,7 @@ describe("locateComponent", () => {
 
   it("setCountyMap only adds layers for results that are present", () => {
     const { L } = makeL();
-    const c = locateComponent({ api: makeApi(), geolocation: makeGeolocation({ position: { coords: {} } }), L });
+    const c = locateComponent({ api: makeApi(), geolocation: makeGeolocation({ position: { coords: {} } }), L, nextTick: (fn) => fn() });
     c.latitude = 43.6;
     c.longitude = -116.2;
     c.results = { countyShape: JSON.stringify({ type: "Polygon", coordinates: [] }) };
@@ -149,7 +150,7 @@ describe("locateComponent", () => {
 
   it("setCountyMap does not duplicate layers across repeated calls", () => {
     const { L } = makeL();
-    const c = locateComponent({ api: makeApi(), geolocation: makeGeolocation({ position: { coords: {} } }), L });
+    const c = locateComponent({ api: makeApi(), geolocation: makeGeolocation({ position: { coords: {} } }), L, nextTick: (fn) => fn() });
     c.latitude = 43.6;
     c.longitude = -116.2;
     c.results = {
@@ -165,7 +166,7 @@ describe("locateComponent", () => {
 
   it("clearMarkers resets the map view and re-adds only the place marker", () => {
     const { L, mapInstance, group } = makeL();
-    const c = locateComponent({ api: makeApi(), geolocation: makeGeolocation({ position: { coords: {} } }), L });
+    const c = locateComponent({ api: makeApi(), geolocation: makeGeolocation({ position: { coords: {} } }), L, nextTick: (fn) => fn() });
     c.latitude = 43.6;
     c.longitude = -116.2;
     c.results = {
@@ -184,7 +185,7 @@ describe("locateComponent", () => {
 
   it("clearMarkers is a no-op before the map has been created", () => {
     const { L } = makeL();
-    const c = locateComponent({ api: makeApi(), geolocation: makeGeolocation({ position: { coords: {} } }), L });
+    const c = locateComponent({ api: makeApi(), geolocation: makeGeolocation({ position: { coords: {} } }), L, nextTick: (fn) => fn() });
 
     expect(() => c.clearMarkers()).not.toThrow();
     expect(L.map).not.toHaveBeenCalled();
@@ -203,7 +204,7 @@ describe("locateComponent", () => {
         topography: { nearestSummitLatitude: 44.0, nearestSummitLongitude: -115.0 },
       })),
     });
-    const c = locateComponent({ api, geolocation: makeGeolocation({ position: { coords: {} } }), L });
+    const c = locateComponent({ api, geolocation: makeGeolocation({ position: { coords: {} } }), L, nextTick: (fn) => fn() });
     c.latitude = 43.6;
     c.longitude = -116.2;
 
@@ -211,7 +212,7 @@ describe("locateComponent", () => {
     await vi.waitFor(() => expect(c.isLoaded).toBe(true));
     await vi.waitFor(() => expect(L.geoJSON).toHaveBeenCalledTimes(1));
 
-    expect(L.map).toHaveBeenCalledTimes(2);
+    expect(L.map).toHaveBeenCalledTimes(1);
     await vi.waitFor(() => expect(L.marker).toHaveBeenCalledWith([44.0, -115.0]));
   });
 });
