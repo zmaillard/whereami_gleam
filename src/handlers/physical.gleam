@@ -16,7 +16,7 @@ type PhysicalError {
 fn result_json(
   ecoregion: Option(coordinate.Ecoregion),
   watershed: List(String),
-  stream_shape: String,
+  stream_shape: coordinate.Coordinate,
 ) -> String {
   let ecoregions = case ecoregion {
     Some(eco) -> [
@@ -46,7 +46,8 @@ fn result_json(
       "drainage",
       watershed |> list.map(fn(i) { json.string(i) }) |> json.preprocessed_array,
     ),
-    #("drainageShape", json.string(stream_shape)),
+    #("drainageLatitude", json.float(stream_shape.latitude)),
+    #("drainageLongitude", json.float(stream_shape.longitude)),
   ]
 
   ecoregions
@@ -68,6 +69,7 @@ pub fn physical_handler(req: Request, ctx: Context) -> Response {
     use huc <- result.try(
       queries.huc(ctx.db, coord) |> result.map_error(UnableToLoadWatershed),
     )
+    echo huc
 
     use watershed <- result.try(
       queries.watersheds(ctx.db, huc)

@@ -70,3 +70,64 @@ html,
 body {
     margin: 0px;
 }
+
+.icon-sunrise-bold {
+  display: inline-block;
+  width: 32px;
+  height: 32px;
+  background-color: currentColor;
+  mask: url("https://cdn.jsdelivr.net/npm/energy-icons@1/svg/sunrise/48-bold.svg") center / contain no-repeat;
+}
+.icon-sunset-bold {
+  display: inline-block;
+  width: 32px;
+  height: 32px;
+  background-color: currentColor;
+  mask: url("https://cdn.jsdelivr.net/npm/energy-icons@1/svg/sunset/48-bold.svg") center / contain no-repeat;
+}
+
+.icon-droplet-bold {
+  display: inline-block;
+  width: 32px;
+  height: 32px;
+  background-color: currentColor;
+  mask: url("https://cdn.jsdelivr.net/npm/energy-icons@1/svg/droplet/48-bold.svg") center / contain no-repeat;
+}
+
+
+.icon-mountain-snow-bold {
+  display: inline-block;
+  width: 48px;
+  height: 48px;
+  background-color: currentColor;
+  mask: url("https://cdn.jsdelivr.net/npm/energy-icons@1/svg/mountain-snow/48-bold.svg") center / contain no-repeat;
+}
+
+.icon-map-pin-bold {
+  display: inline-block;
+  width: 32px;
+  height: 32px;
+  background-color: currentColor;
+  mask: url("https://cdn.jsdelivr.net/npm/energy-icons@1/svg/map-pin/48-bold.svg") center / contain no-repeat;
+}
+
+.icon-pine-tree-bold {
+  display: inline-block;
+  width: 32px;
+  height: 32px;
+  background-color: currentColor;
+  mask: url("https://cdn.jsdelivr.net/npm/energy-icons@1/svg/pine-tree/48-bold.svg") center / contain no-repeat;
+}
+
+.icon-clock-8-bold {
+  display: inline-block;
+  width: 32px;
+  height: 32px;
+  background-color: currentColor;
+  mask: url("https://cdn.jsdelivr.net/npm/energy-icons@1/svg/clock-8/48-bold.svg") center / contain no-repeat;
+}
+
+.map {
+    height: 400px;
+    color: black;
+}

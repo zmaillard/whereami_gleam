@@ -8,6 +8,7 @@ import gleam/result
 import tempo
 import tempo/datetime
 import tempo/instant
+import utilities/weather
 import wisp
 
 pub type TidePrediction {
@@ -196,12 +197,14 @@ pub type WeatherForecast {
     forecast1_wind_direction: Option(String),
     forecast1: Option(String),
     forecast1_details: Option(String),
+    forecast1_icon: Option(weather.Icon),
     forecast2: Option(String),
     forecast2_details: Option(String),
     forecast2_temperature: Option(Int),
     forecast2_short_forecast: Option(String),
     forecast2_wind_speed: Option(String),
     forecast2_wind_direction: Option(String),
+    forecast2_icon: Option(weather.Icon),
     elevation: Float,
   )
 }

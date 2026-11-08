@@ -1,4 +1,4 @@
-import { lengthOfDay, formatTime } from "./format.js";
+import { lengthOfDay, formatTime,energyIconFromNwsIconDescription } from "./format.js";
 import { createLayerRegistry } from "./layers.js";
 
 export function locateComponent({
@@ -10,6 +10,7 @@ export function locateComponent({
   L = window.L,
   spacetime = window.spacetime,
   nextTick = (fn) => (window.Alpine ? window.Alpine.nextTick(fn) : queueMicrotask(fn)),
+  raw = (v) => (window.Alpine ? window.Alpine.raw(v) : v),
 } = {}) {
   return {
     latitude: "",
@@ -171,6 +172,12 @@ export function locateComponent({
     firstForecast() {
       return this.results?.weather?.forecast_1;
     },
+    firstForecastIcon() {
+      if (this.results?.weather?.forecast_icon_1?.time && this.results?.weather?.forecast_icon_1?.type) {
+        return energyIconFromNwsIconDescription("ei-", this.results?.weather?.forecast_icon_1?.time, this.results?.weather?.forecast_icon_1?.type);
+      }
+      return "";
+    },
     firstForecastDetails() {
       return this.results?.weather?.forecast_details_1;
     },
@@ -199,7 +206,7 @@ export function locateComponent({
       return t ? this.results.time.sunset.format('time') : "";
     },
     lengthOfDay() {
-      return this.results.time ? this.results.time.sunset.diff(this.results.time.sunrise).hours : "";
+      return this.results.time ? this.results.time.sunset.since(this.results.time.sunrise).abbreviated.join(" ") : "";
     },
     elevation() {
       if (this.results.topography?.elevation) {
@@ -216,14 +223,18 @@ export function locateComponent({
               attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
           }).addTo(this.countyMap);
 
-          this.layers = createLayerRegistry({ L, map: this.countyMap });
-          this.layers.add("place", () => L.marker([this.latitude, this.longitude]));
+          this.layers = createLayerRegistry({ L, map: this.countyMap, raw });
+          this.layers.add("place", () => L.marker([this.latitude, this.longitude],{icon: L.divIcon({className: 'icon-map-pin-bold', iconSize: [32, 32]})}));
         } else {
           this.countyMap.invalidateSize();
         }
 
+        if (this.results?.drainageLatitude && this.results?.drainageLongitude) {
+          this.layers.add("drainage", () => L.marker([this.results.drainageLatitude, this.results.drainageLongitude], { icon: L.divIcon({ className: 'icon-droplet-bold', iconSize: [32, 32] }) }));//.bindTooltip(this.results.nearestNationalPark.name));
+        }
+
         if (this.results?.nearestNationalPark?.latitude && this.results?.nearestNationalPark?.longitude) {
-          this.layers.add("nationalPark", () => L.marker([this.results.nearestNationalPark.latitude, this.results.nearestNationalPark.longitude]));
+          this.layers.add("nationalPark", () => L.marker([this.results.nearestNationalPark.latitude, this.results.nearestNationalPark.longitude], {icon: L.divIcon({className: 'icon-pine-tree-bold', iconSize: [32, 32]})}).bindTooltip(this.results.nearestNationalPark.name));
         }
 
         if (this.results?.countyShape) {
@@ -231,9 +242,13 @@ export function locateComponent({
         }
 
         if ((this.results?.topography?.nearestSummitLatitude && this.results?.topography?.nearestSummitLongitude)) {
-          this.layers.add("summit", () => L.marker([this.results?.topography?.nearestSummitLatitude, this.results?.topography?.nearestSummitLongitude]));
+          this.layers.add("summit", () => L.marker([this.results?.topography?.nearestSummitLatitude, this.results?.topography?.nearestSummitLongitude], {icon: L.divIcon({className: 'icon-mountain-snow-bold',  iconSize: [32, 32]})}).bindTooltip(this.results.topography.nearestSummit));
         }
       });
+    },
+    summitTooltip() {
+      console.log("here")
+      this.layers.showTooltip("summit");
     },
     clearMarkers() {
       if (!this.countyMap) return;
@@ -291,7 +306,8 @@ export function locateComponent({
         .then((r) => {
           if (r.drainage) {
             self.results.drainage = r.drainage;
-            self.results.drainageShape = r.drainageShape;
+            self.results.drainageLatitude = r.drainageLatitude;
+            self.results.drainageLongitude = r.drainageLongitude;
           }
           if (r.ecoregions) {
             self.results.ecoregions = {
@@ -300,6 +316,7 @@ export function locateComponent({
               level3: r.ecoregions.level3,
             };
           }
+          self.setCountyMap();
         });
 
       let forecastPromise = api.forecast(coords)
@@ -340,6 +357,8 @@ export function locateComponent({
               forecast_short_forecast_2: r.weather.forecast_short_forecast_2,
               forecast_temperature_1: r.weather.forecast_temperature_1,
               forecast_temperature_2: r.weather.forecast_temperature_2,
+              forecast_icon_1: r.weather.forecast_icon_1,
+              forecast_icon_2: r.weather.forecast_icon_2,
             };
           }
           self.setCountyMap();
@@ -364,6 +383,7 @@ export function locateComponent({
               self.place = feature.properties.name;
               self.placeState = feature.properties.context.region.name
               self.isCurrentLocation = false;
+              self.results = {};
             }
           }
         });

@@ -30,20 +30,23 @@
     </div>
     <section x-show="lengthOfDay" x-transition class="section results-section">
         <h1 class="title" x-text="titleText"></h1>
-        <div class="content is-size-4">It is <span x-text="currentTime"></span> observing the <strong x-text="timezone"></strong>.  <strong x-text="timezone"></strong> <strong x-text="dstStatement"></strong>.
-            Sunrise today is at <strong x-text="sunrise"></strong>.  Sunset is at <strong x-text="sunset"></strong>.  Today, the length of the day is <strong x-text="lengthOfDay"></strong> long.
+        <div class="content is-size-4">
+            <p class="icon-text"><span class="icon"><i class="ei-b ei-clock-8" role="img" aria-label="time"></i></span>Local time is <strong x-text="currentTime"></strong> observing the <strong x-text="timezone"></strong> time zone.  <strong x-text="timezone"></strong> <strong x-text="dstStatement"></strong>.</p>
+            <p class="icon-text"><span class="icon"><i class="ei-b ei-sunrise" role="img" aria-label="sunrise"></i></span>Sunrise today is at <strong x-text="sunrise"></strong>.  <span class="icon"><i class="ei-b ei-sunset" role="img" aria-label="sunset"></i></span>Sunset is at <strong x-text="sunset"></strong>.  Today, the length of the day is <strong x-text="lengthOfDay"></strong> long.</p>
+            <p x-show="firstForecastDetails"><span class="icon" x-show="firstForecastIcon"><i class="ei-b" :class="firstForecastIcon" role="img" aria-label="sunrise"></i></span><strong x-text="firstForecast"></strong> <span x-text="firstForecastDetails"></span></p>
         </div>
-        <div class="content is-size-4" x-show="firstForecastDetails"><strong x-text="firstForecast"></strong> <span x-text="firstForecastDetails"></span></div>
     </section>
     <section x-show="countyStateFormatted" x-transition class="section">
         <div class="fixed-grid">
             <div class="grid">
                 <div class="cell">
-                    <div class="content is-size-4" x-show="countyStateFormatted">Located in <strong x-text="countyStateFormatted"></strong> <span x-show="elevation">at an elevation of <strong x-text="elevation"></strong>.</span>
-                    <span x-show="nearestSummit">The nearest highest location is <strong x-text="nearestSummit"></strong> <span x-show="nearestSummitElevation">at an elevation of <strong x-text="nearestSummitElevation"></strong> (<span x-text="nearestSummitDistance"></span>)</span></div>
-                    <div class="content is-size-4" x-show="nearestNationalPark">The nearest National Park is <strong x-text="nearestNationalPark"></strong> (<span x-text="nearestNationalParkDistance"></span>)</div>
-                    <div class="content is-size-4" x-show="drainage">Water here flows into the <strong x-text="drainage"></strong>.</div>
-                    <div class="content is-size-4" x-show="level3Ecoregion">It is part of the <strong x-text="level3Ecoregion"></strong> ecoregion.</div>
+                    <div class="content is-size-4" x-show="countyStateFormatted">
+                        <p>Located in <strong x-text="countyStateFormatted"></strong> <span x-show="elevation">at an elevation of <strong x-text="elevation"></strong>.</span></p>
+                        <p class="icon-text" x-show="nearestSummit">The nearest highest location is <span class="icon"><i class="ei-b ei-mountain-snow" role="img" aria-label="mountain"></i></span><strong x-text="nearestSummit"></strong> at an elevation of <strong x-text="nearestSummitElevation"></strong> (<span x-text="nearestSummitDistance"></span>)</p>
+                        <p class="icon-text" x-show="nearestNationalPark">The nearest National Park is <span class="icon"><i class="ei-b ei-pine-tree" role="img" aria-label="park"></i></span><strong x-text="nearestNationalPark"></strong> (<span x-text="nearestNationalParkDistance"></span>)</p>
+                        <p class="icon-text" x-show="drainage"><span class="icon"><i class="ei-b ei-droplet" role="img" aria-label="park"></i></span>Water here flows into the <strong x-text="drainage"></strong>.</p>
+                        <p x-show="level3Ecoregion">It is part of the <strong x-text="level3Ecoregion"></strong> ecoregion.</p>
+                    </div>
                 </div>
                 <div class="cell">
                     <div class="map" id="countyMap"></div>

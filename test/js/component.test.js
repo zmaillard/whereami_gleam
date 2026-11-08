@@ -30,8 +30,9 @@ function makeL() {
       map: vi.fn(() => mapInstance),
       tileLayer: vi.fn(() => ({ addTo: vi.fn() })),
       layerGroup: vi.fn(() => group),
-      marker: vi.fn((latlng) => ({ latlng })),
+      marker: vi.fn((latlng) => ({ latlng, bindTooltip: vi.fn().mockReturnThis() })),
       geoJSON: vi.fn((data) => ({ data })),
+      divIcon: vi.fn((opts) => ({ opts })),
     },
     mapInstance,
     group,
@@ -131,7 +132,7 @@ describe("locateComponent", () => {
 
     c.setCountyMap();
 
-    expect(L.marker).toHaveBeenCalledWith([43.6, -116.2]);
+    expect(L.marker).toHaveBeenCalledWith([43.6, -116.2], expect.anything());
   });
 
   it("setCountyMap only adds layers for results that are present", () => {
@@ -213,6 +214,6 @@ describe("locateComponent", () => {
     await vi.waitFor(() => expect(L.geoJSON).toHaveBeenCalledTimes(1));
 
     expect(L.map).toHaveBeenCalledTimes(1);
-    await vi.waitFor(() => expect(L.marker).toHaveBeenCalledWith([44.0, -115.0]));
+    await vi.waitFor(() => expect(L.marker).toHaveBeenCalledWith([44.0, -115.0], expect.anything()));
   });
 });
