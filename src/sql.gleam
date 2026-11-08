@@ -217,7 +217,11 @@ pub fn get_huc(
     decode.success(GetHucRow(huc12:))
   }
 
-  "SELECT h.huc12 FROM wbdhu12 h WHERE ST_CONTAINS(h.shape,ST_BUFFER(ST_POINT($1,$2, 4269), 0.1));
+  "SELECT huc12 from (
+SELECT h.huc12 FROM wbdhu12 h WHERE ST_CONTAINS(h.shape,ST_POINT($1,$2, 4269))
+union all
+SELECT h.huc12 FROM wbdhu12 h WHERE ST_INTERSECTS(h.shape,ST_BUFFER(ST_POINT($1,$2, 4269), 0.1))
+) i where i.huc12 is not null limit 1
 "
   |> pog.query
   |> pog.parameter(pog.float(arg_1))
@@ -657,6 +661,46 @@ WHERE ST_CONTAINS(p.\"SHAPE\", ST_POINT($1,$2,4269));
   |> pog.query
   |> pog.parameter(pog.float(arg_1))
   |> pog.parameter(pog.float(arg_2))
+  |> pog.returning(decoder)
+  |> pog.execute(db)
+}
+
+/// A row you get from running the `get_watershed_exit` query
+/// defined in `./src/sql/get_watershed_exit.sql`.
+///
+/// > 🐿️ This type definition was generated automatically using v4.7.0 of the
+/// > [squirrel package](https://github.com/giacomocavalieri/squirrel).
+///
+pub type GetWatershedExitRow {
+  GetWatershedExitRow(longitude: Float, latitude: Float)
+}
+
+/// Runs the `get_watershed_exit` query
+/// defined in `./src/sql/get_watershed_exit.sql`.
+///
+/// > 🐿️ This function was generated automatically using v4.7.0 of
+/// > the [squirrel package](https://github.com/giacomocavalieri/squirrel).
+///
+pub fn get_watershed_exit(
+  db: pog.Connection,
+  start_huc12: String,
+) -> Result(pog.Returned(GetWatershedExitRow), pog.QueryError) {
+  let decoder = {
+    use longitude <- decode.field(0, decode.float)
+    use latitude <- decode.field(1, decode.float)
+    decode.success(GetWatershedExitRow(longitude:, latitude:))
+  }
+
+  "WITH max_huc AS (select max(depth) from huc_downstream_paths where start_huc12 = $1),
+   terminal_huc as (select huc12 from huc_downstream_paths where start_huc12 = $1 and depth = (select * from max_huc)),
+    pre_terminal_huc as (select huc12 from huc_downstream_paths where start_huc12 = $1 and depth = (select * from max_huc) - 1),
+    intersects as (select ST_POINTN(ST_Intersection(t.shape, p.shape),1) as geom from wbdhu12 t inner join wbdhu12 p on t.huc12 = (select * from terminal_huc) and p.huc12 = (select * from pre_terminal_huc)
+    UNION ALL
+    select ST_CENTROID(shape) as geom from wbdhu12 where huc12 = (select * from terminal_huc))
+select ST_X(geom) as longitude, ST_Y(geom) as latitude from intersects where geom is not null limit 1
+"
+  |> pog.query
+  |> pog.parameter(pog.text(start_huc12))
   |> pog.returning(decoder)
   |> pog.execute(db)
 }

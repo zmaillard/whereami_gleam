@@ -7,6 +7,7 @@
     <title>{{ title }}</title>
 
     <link href="/static/css/app.css" rel="stylesheet" type="text/css" />
+    <link rel="stylesheet" href="https://unpkg.com/energy-icons@1/font/style.css" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
          integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
          crossorigin=""/>
@@ -16,7 +17,6 @@
       href="https://cdn.jsdelivr.net/npm/bulma@1.0.4/css/bulma.min.css"
     >
     <style>
-    .map { height: 400px; }
     dt {
   font-weight: bold;
 }
@@ -34,7 +34,7 @@ dd {
              crossorigin=""></script>
 
 </head>
-<body hx-ext="loading-states">
+<body>
         {{>content_template .}}
           <footer class="footer">
             <div class="content has-text-centered">

@@ -174,10 +174,10 @@ pub fn tide_station(
 pub fn watersheds_shape(
   db_conn: pog.Connection,
   huc: String,
-) -> Result(String, DatabaseError) {
+) -> Result(coordinate.Coordinate, DatabaseError) {
   let query_result =
     db_conn
-    |> sql.get_huc_centerline(huc)
+    |> sql.get_watershed_exit(huc)
     |> result.map_error(QueryError)
 
   use pog.Returned(_, rows) <- result.try(query_result)
@@ -187,7 +187,7 @@ pub fn watersheds_shape(
     |> result.replace_error(NoRecordsFoundError)
 
   use row <- result.map(row)
-  row.st_asgeojson
+  coordinate.Coordinate(latitude: row.latitude, longitude: row.longitude)
 }
 
 pub fn huc(

@@ -12,6 +12,7 @@ import gleam/result
 import tempo/datetime
 import tempo/duration
 import utilities/tide
+import utilities/weather
 
 type ElevationResponse {
   ElevationResponse(value: Float)
@@ -75,6 +76,7 @@ type Period {
     wind_speed: String,
     wind_direction: String,
     temperature: Int,
+    icon: String,
   )
 }
 
@@ -88,6 +90,7 @@ fn forecast_from_json(
     use wind_speed <- decode.field("windSpeed", decode.string)
     use wind_direction <- decode.field("windDirection", decode.string)
     use temperature <- decode.field("temperature", decode.int)
+    use icon <- decode.field("icon", decode.string)
     decode.success(Period(
       name:,
       detailed_forecast:,
@@ -95,6 +98,7 @@ fn forecast_from_json(
       wind_speed:,
       wind_direction:,
       temperature:,
+      icon:,
     ))
   }
 
@@ -166,6 +170,9 @@ pub fn weather(
         |> option.map(fn(f) { f.wind_direction }),
       forecast1: forecast1 |> option.map(fn(f) { f.name }),
       forecast1_details: forecast1 |> option.map(fn(f) { f.detailed_forecast }),
+      forecast1_icon: forecast1
+        |> option.map(fn(f) { convert_weather_icon(f.icon) })
+        |> option.flatten,
       forecast2: forecast2 |> option.map(fn(f) { f.name }),
       forecast2_details: forecast2 |> option.map(fn(f) { f.detailed_forecast }),
       forecast2_temperature: forecast1 |> option.map(fn(f) { f.temperature }),
@@ -174,10 +181,17 @@ pub fn weather(
       forecast2_wind_speed: forecast2 |> option.map(fn(f) { f.wind_speed }),
       forecast2_wind_direction: forecast2
         |> option.map(fn(f) { f.wind_direction }),
+      forecast2_icon: forecast2
+        |> option.map(fn(f) { convert_weather_icon(f.icon) })
+        |> option.flatten,
       elevation: forecast_value.elevation,
     )
 
   Ok(weather_forecast)
+}
+
+fn convert_weather_icon(icon: String) -> option.Option(weather.Icon) {
+  weather.weather_icon_parser(icon) |> option.from_result
 }
 
 pub fn elevation(
