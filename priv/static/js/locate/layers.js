@@ -1,4 +1,4 @@
-export function createLayerRegistry({ L, map, raw = (i) => { } }) {
+export function createLayerRegistry({ L, map, raw = (i) => i }) {
   const layers = {};
   const group = L.layerGroup().addTo(raw(map));
 

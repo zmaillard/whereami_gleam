@@ -10,6 +10,7 @@ export function locateComponent({
   L = window.L,
   spacetime = window.spacetime,
   nextTick = (fn) => (window.Alpine ? window.Alpine.nextTick(fn) : queueMicrotask(fn)),
+  raw = (v) => (window.Alpine ? window.Alpine.raw(v) : v),
 } = {}) {
   return {
     latitude: "",
@@ -222,7 +223,7 @@ export function locateComponent({
               attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
           }).addTo(this.countyMap);
 
-          this.layers = createLayerRegistry({ L, map: this.countyMap, raw: Alpine.raw });
+          this.layers = createLayerRegistry({ L, map: this.countyMap, raw });
           this.layers.add("place", () => L.marker([this.latitude, this.longitude],{icon: L.divIcon({className: 'icon-map-pin-bold', iconSize: [32, 32]})}));
         } else {
           this.countyMap.invalidateSize();
