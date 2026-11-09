@@ -151,6 +151,18 @@ export function locateComponent({
       }
       return "";
     },
+    nearestPlace() {
+      if (this.results?.nearestPlace?.name && this.results?.nearestPlace?.state) {
+        return `${this.results?.nearestPlace?.name}, ${this.results?.nearestPlace?.state}`
+      }
+      return "";
+    },
+    nearestPlaceDistance() {
+      if (this.results?.nearestPlace?.distance && this.results?.nearestPlace?.bearing) {
+        return `${Math.round(this.results.nearestPlace.distance)} miles ${this.results.nearestPlace.bearing}`;
+      }
+      return "";
+    },
     countyStateFormatted() {
       if (this.results?.county && this.results?.state) {
         return `${this.results.county}, ${this.results.state}`
@@ -237,6 +249,10 @@ export function locateComponent({
           this.layers.add("nationalPark", () => L.marker([this.results.nearestNationalPark.latitude, this.results.nearestNationalPark.longitude], {icon: L.divIcon({className: 'icon-pine-tree-bold', iconSize: [32, 32]})}).bindTooltip(this.results.nearestNationalPark.name));
         }
 
+        if (this.results?.nearestPlace?.latitude && this.results?.nearestPlace?.longitude) {
+          this.layers.add("nearestPlace", () => L.marker([this.results.nearestPlace.latitude, this.results.nearestPlace.longitude], {icon: L.divIcon({className: 'icon-city-skyline-bold', iconSize: [32, 32]})}).bindTooltip(this.nearestPlace()));
+        }
+
         if (this.results?.countyShape) {
           this.layers.add("county", () => L.geoJSON(JSON.parse(this.results.countyShape), {}));
         }
@@ -297,6 +313,16 @@ export function locateComponent({
               bearing: r.nearestNationalPark.bearing,
               latitude: r.nearestNationalPark.latitude,
               longitude: r.nearestNationalPark.longitude,
+            };
+          }
+          if (r.nearestPlace) {
+            self.results.nearestPlace = {
+              name: r.nearestPlace.place,
+              state: r.nearestPlace.state,
+              distance: r.nearestPlace.distance,
+              bearing: r.nearestPlace.bearing,
+              latitude: r.nearestPlace.latitude,
+              longitude: r.nearestPlace.longitude,
             };
           }
           self.setCountyMap();

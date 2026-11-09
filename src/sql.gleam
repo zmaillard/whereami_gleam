@@ -310,7 +310,13 @@ pub fn get_huc_closure(
 /// > [squirrel package](https://github.com/giacomocavalieri/squirrel).
 ///
 pub type GetIncorporatedPlaceRow {
-  GetIncorporatedPlaceRow(name: Option(String), state: Option(String))
+  GetIncorporatedPlaceRow(
+    name: Option(String),
+    state: Option(String),
+    population: Int,
+    longitude: Float,
+    latitude: Float,
+  )
 }
 
 /// Runs the `get_incorporated_place` query
@@ -327,15 +333,114 @@ pub fn get_incorporated_place(
   let decoder = {
     use name <- decode.field(0, decode.optional(decode.string))
     use state <- decode.field(1, decode.optional(decode.string))
-    decode.success(GetIncorporatedPlaceRow(name:, state:))
+    use population <- decode.field(2, decode.int)
+    use longitude <- decode.field(3, decode.float)
+    use latitude <- decode.field(4, decode.float)
+    decode.success(GetIncorporatedPlaceRow(
+      name:,
+      state:,
+      population:,
+      longitude:,
+      latitude:,
+    ))
   }
 
-  "SELECT p.\"PLACE_NAME\" as name,p.\"STATE_NAME\" as state FROM incorporated_place p
+  "SELECT
+    p.\"PLACE_NAME\" as name,
+    p.\"STATE_NAME\" as state,
+    COALESCE(p.\"POPULATION\",0) as population,
+    ST_X(ST_CENTROID(p.\"SHAPE\")) as longitude,
+    ST_Y(ST_CENTROID(p.\"SHAPE\")) as latitude
+FROM incorporated_place p
 WHERE ST_CONTAINS(p.\"SHAPE\", ST_POINT($1,$2,4269));
 "
   |> pog.query
   |> pog.parameter(pog.float(arg_1))
   |> pog.parameter(pog.float(arg_2))
+  |> pog.returning(decoder)
+  |> pog.execute(db)
+}
+
+/// A row you get from running the `get_nearest_larger_place` query
+/// defined in `./src/sql/get_nearest_larger_place.sql`.
+///
+/// > 🐿️ This type definition was generated automatically using v4.7.0 of the
+/// > [squirrel package](https://github.com/giacomocavalieri/squirrel).
+///
+pub type GetNearestLargerPlaceRow {
+  GetNearestLargerPlaceRow(
+    name: String,
+    state: String,
+    dist: Float,
+    bearing: Float,
+    longitude: Float,
+    latitude: Float,
+  )
+}
+
+/// Runs the `get_nearest_larger_place` query
+/// defined in `./src/sql/get_nearest_larger_place.sql`.
+///
+/// > 🐿️ This function was generated automatically using v4.7.0 of
+/// > the [squirrel package](https://github.com/giacomocavalieri/squirrel).
+///
+pub fn get_nearest_larger_place(
+  db: pog.Connection,
+  arg_1: Float,
+  arg_2: Float,
+  arg_3: Int,
+) -> Result(pog.Returned(GetNearestLargerPlaceRow), pog.QueryError) {
+  let decoder = {
+    use name <- decode.field(0, decode.string)
+    use state <- decode.field(1, decode.string)
+    use dist <- decode.field(2, decode.float)
+    use bearing <- decode.field(3, decode.float)
+    use longitude <- decode.field(4, decode.float)
+    use latitude <- decode.field(5, decode.float)
+    decode.success(GetNearestLargerPlaceRow(
+      name:,
+      state:,
+      dist:,
+      bearing:,
+      longitude:,
+      latitude:,
+    ))
+  }
+
+  "WITH constants (pt) as (
+    values (ST_POINT($1, $2, 4269)::geography)
+)
+SELECT
+    name,
+    state,
+    shape::geography <-> pt as dist,
+    degrees(st_azimuth(pt, ST_CENTROID(shape))) as bearing,
+    ST_X(ST_Centroid(shape)) as longitude,
+    ST_Y(ST_Centroid(shape)) as latitude
+FROM
+    (
+SELECT
+    u.\"PLACE_NAME\" as name,
+    u.\"STATE_NAME\" as state,
+    u.\"SHAPE\" as shape,
+    u.\"POPULATION\" as population
+FROM unincorporated_place u
+UNION ALL
+SELECT
+    i.\"PLACE_NAME\" as name,
+    i.\"STATE_NAME\" as state,
+    i.\"SHAPE\" as shape,
+    i.\"POPULATION\" as population
+FROM incorporated_place i
+), constants
+WHERE population > $3
+ORDER BY dist
+LIMIT 1;
+"
+  |> pog.query
+  |> pog.parameter(pog.float(arg_1))
+  |> pog.parameter(pog.float(arg_2))
+  |> pog.parameter(pog.int(arg_3))
   |> pog.returning(decoder)
   |> pog.execute(db)
 }
@@ -408,7 +513,15 @@ LIMIT 1;
 /// > [squirrel package](https://github.com/giacomocavalieri/squirrel).
 ///
 pub type GetNearestPlaceRow {
-  GetNearestPlaceRow(name: String, state: String, dist: Float, bearing: Float)
+  GetNearestPlaceRow(
+    name: String,
+    state: String,
+    dist: Float,
+    bearing: Float,
+    coalesce: Int,
+    longitude: Float,
+    latitude: Float,
+  )
 }
 
 /// Runs the `get_nearest_place` query
@@ -427,7 +540,18 @@ pub fn get_nearest_place(
     use state <- decode.field(1, decode.string)
     use dist <- decode.field(2, decode.float)
     use bearing <- decode.field(3, decode.float)
-    decode.success(GetNearestPlaceRow(name:, state:, dist:, bearing:))
+    use coalesce <- decode.field(4, decode.int)
+    use longitude <- decode.field(5, decode.float)
+    use latitude <- decode.field(6, decode.float)
+    decode.success(GetNearestPlaceRow(
+      name:,
+      state:,
+      dist:,
+      bearing:,
+      coalesce:,
+      longitude:,
+      latitude:,
+    ))
   }
 
   "WITH constants (pt) as (
@@ -437,19 +561,24 @@ SELECT
     name,
     state,
     shape::geography <-> pt as dist,
-    degrees(st_azimuth(pt, shape)) as bearing
+    degrees(st_azimuth(pt, shape)) as bearing,
+    COALESCE(population,0),
+    ST_X(ST_CENTROID(shape)) as longitude,
+    ST_Y(ST_CENTROID(shape)) as latitude
 FROM
     (
 SELECT
     u.\"PLACE_NAME\" as name,
     u.\"STATE_NAME\" as state,
-    u.\"SHAPE\" as shape
+    u.\"SHAPE\" as shape,
+    u.\"POPULATION\" as population
 FROM unincorporated_place u
 UNION ALL
 SELECT
     i.\"PLACE_NAME\" as name,
     i.\"STATE_NAME\" as state,
-    i.\"SHAPE\" as shape
+    i.\"SHAPE\" as shape,
+    i.\"POPULATION\" as population
 FROM incorporated_place i
 ), constants
 ORDER BY dist
@@ -635,7 +764,13 @@ pub fn get_nws_office(
 /// > [squirrel package](https://github.com/giacomocavalieri/squirrel).
 ///
 pub type GetUnincorporatedPlaceRow {
-  GetUnincorporatedPlaceRow(name: Option(String), state: Option(String))
+  GetUnincorporatedPlaceRow(
+    name: Option(String),
+    state: Option(String),
+    population: Int,
+    longitude: Float,
+    latitude: Float,
+  )
 }
 
 /// Runs the `get_unincorporated_place` query
@@ -652,10 +787,25 @@ pub fn get_unincorporated_place(
   let decoder = {
     use name <- decode.field(0, decode.optional(decode.string))
     use state <- decode.field(1, decode.optional(decode.string))
-    decode.success(GetUnincorporatedPlaceRow(name:, state:))
+    use population <- decode.field(2, decode.int)
+    use longitude <- decode.field(3, decode.float)
+    use latitude <- decode.field(4, decode.float)
+    decode.success(GetUnincorporatedPlaceRow(
+      name:,
+      state:,
+      population:,
+      longitude:,
+      latitude:,
+    ))
   }
 
-  "SELECT p.\"PLACE_NAME\" as name,p.\"STATE_NAME\" as state FROM unincorporated_place p
+  "SELECT
+    p.\"PLACE_NAME\" as name,
+    p.\"STATE_NAME\" as state,
+    COALESCE(p.\"POPULATION\",0) as population,
+    ST_X(ST_CENTROID(p.\"SHAPE\")) as longitude,
+    ST_Y(ST_CENTROID(p.\"SHAPE\")) as latitude
+FROM unincorporated_place p
 WHERE ST_CONTAINS(p.\"SHAPE\", ST_POINT($1,$2,4269));
 "
   |> pog.query

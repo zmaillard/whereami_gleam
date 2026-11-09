@@ -94,6 +94,13 @@ body {
   mask: url("https://cdn.jsdelivr.net/npm/energy-icons@1/svg/droplet/48-bold.svg") center / contain no-repeat;
 }
 
+.icon-city-skyline-bold {
+  display: inline-block;
+  width: 32px;
+  height: 32px;
+  background-color: currentColor;
+  mask: url("https://cdn.jsdelivr.net/npm/energy-icons@1/svg/city-skyline/48-bold.svg") center / contain no-repeat;
+}
 
 .icon-mountain-snow-bold {
   display: inline-block;

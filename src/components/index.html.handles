@@ -20,8 +20,6 @@
                 </div>
                 <div x-show="hasplace">
                     <button @click="locate" :class="loadingResults && 'is-loading'" class="button is-primary"  x-text="detailsButtonText"></button>
-                    <input name="lat" type="hidden" id="latitude" name="latitude" x-model="latitude" />
-                    <input name="lng" type="hidden" id="longitude" name="longitude" x-model="longitude"  />
                 </div>
             </div>
     </div>
@@ -44,7 +42,8 @@
                         <p>Located in <strong x-text="countyStateFormatted"></strong> <span x-show="elevation">at an elevation of <strong x-text="elevation"></strong>.</span></p>
                         <p class="icon-text" x-show="nearestSummit">The nearest highest location is <span class="icon"><i class="ei-b ei-mountain-snow" role="img" aria-label="mountain"></i></span><strong x-text="nearestSummit"></strong> at an elevation of <strong x-text="nearestSummitElevation"></strong> (<span x-text="nearestSummitDistance"></span>)</p>
                         <p class="icon-text" x-show="nearestNationalPark">The nearest National Park is <span class="icon"><i class="ei-b ei-pine-tree" role="img" aria-label="park"></i></span><strong x-text="nearestNationalPark"></strong> (<span x-text="nearestNationalParkDistance"></span>)</p>
-                        <p class="icon-text" x-show="drainage"><span class="icon"><i class="ei-b ei-droplet" role="img" aria-label="park"></i></span>Water here flows into the <strong x-text="drainage"></strong>.</p>
+                        <p class="icon-text" x-show="nearestPlace">The nearest larger place is <span class="icon"><i class="ei-b ei-city-skyline" role="img" aria-label="city"></i></span><strong x-text="nearestPlace"></strong> (<span x-text="nearestPlaceDistance"></span>)</p>
+                        <p class="icon-text" x-show="drainage">Water here flows into the <span class="icon"><i class="ei-b ei-droplet" role="img" aria-label="water"></i></span><strong x-text="drainage"></strong>.</p>
                         <p x-show="level3Ecoregion">It is part of the <strong x-text="level3Ecoregion"></strong> ecoregion.</p>
                     </div>
                 </div>

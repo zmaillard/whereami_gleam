@@ -4,7 +4,7 @@ import error
 import gleam/http.{Post}
 import gleam/json
 import gleam/list
-import gleam/option.{type Option, Some}
+import gleam/option.{type Option, None, Some}
 import gleam/result
 import location/queries
 import utilities/state
@@ -27,7 +27,25 @@ fn result_json(
   county: coordinate.County,
   place: Option(coordinate.PopulatedPlace),
   national_park: Option(coordinate.NationalPark),
+  nearest_place: Option(coordinate.ReverseGeocode),
 ) -> String {
+  let nearest_place_json = case nearest_place {
+    Some(coordinate.NearestPlace(name, state, distance, bearing, lat, lng)) -> [
+      #(
+        "nearestPlace",
+        json.object([
+          #("place", json.string(name)),
+          #("state", json.string(state)),
+          #("distance", json.float(distance)),
+          #("bearing", json.string(bearing)),
+          #("latitude", json.float(lat)),
+          #("longitude", json.float(lng)),
+        ]),
+      ),
+    ]
+    _ -> []
+  }
+
   let nearest_park = case national_park {
     Some(coordinate.NationalPark(name, distance, bearing, latitude, longitude)) -> [
       #(
@@ -57,11 +75,11 @@ fn result_json(
   ]
 
   let place = case place {
-    Some(coordinate.Incorporated(name, _)) -> [
+    Some(coordinate.Incorporated(name, _, _, _, _)) -> [
       #("place", json.string(name)),
       #("placeType", json.string("Incorporated")),
     ]
-    Some(coordinate.Unincorporated(name, _)) -> [
+    Some(coordinate.Unincorporated(name, _, _, _, _)) -> [
       #("place", json.string(name)),
       #("placeType", json.string("Unincorporated")),
     ]
@@ -71,6 +89,7 @@ fn result_json(
   |> list.append(county_json)
   |> list.append(place)
   |> list.append(nearest_park)
+  |> list.append(nearest_place_json)
   |> json.object
   |> json.to_string
 }
@@ -94,11 +113,24 @@ pub fn political_handler(req: Request, ctx: Context) -> Response {
       queries.place(ctx.db, coord)
       |> option.from_result
 
+    let nearest_place =
+      case place {
+        Some(p) -> queries.nearest_larger_place(ctx.db, coord, p.population)
+        None -> queries.reverse(ctx.db, coord)
+      }
+      |> option.from_result
+
     let national_park =
       queries.national_park(ctx.db, coord)
       |> option.from_result
 
-    Ok(result_json(congressional_district, county, place, national_park))
+    Ok(result_json(
+      congressional_district,
+      county,
+      place,
+      national_park,
+      nearest_place,
+    ))
   }
   case result {
     Ok(json_res) -> wisp.json_response(json_res, 200)
