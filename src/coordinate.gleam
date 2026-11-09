@@ -83,19 +83,26 @@ pub type Ecoregion {
 }
 
 pub type ReverseGeocode {
-  Place(place: String, state: String)
-  NearestPlace(name: String, state: String, distance: Float, bearing: String)
+  Place(place: String, state: String, latitude: Float, longitude: Float)
+  NearestPlace(
+    name: String,
+    state: String,
+    distance: Float,
+    bearing: String,
+    latitude: Float,
+    longitude: Float,
+  )
 }
 
 pub fn reverse_geocode_to_json(reverse_geocode: ReverseGeocode) -> String {
   case reverse_geocode {
-    Place(place, state) -> {
+    Place(place, state, _, _) -> {
       json.object([
         #("place", json.string(place)),
         #("state", json.string(state)),
       ])
     }
-    NearestPlace(name, state, distance, bearing) -> {
+    NearestPlace(name, state, distance, bearing, _, _) -> {
       json.object([
         #("place", json.string(name)),
         #("state", json.string(state)),
@@ -221,6 +228,18 @@ pub type Summit {
 }
 
 pub type PopulatedPlace {
-  Incorporated(name: String, state: String)
-  Unincorporated(name: String, state: String)
+  Incorporated(
+    name: String,
+    state: String,
+    population: Int,
+    latitude: Float,
+    longitude: Float,
+  )
+  Unincorporated(
+    name: String,
+    state: String,
+    population: Int,
+    latitude: Float,
+    longitude: Float,
+  )
 }

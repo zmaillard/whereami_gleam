@@ -56,6 +56,9 @@ fn incorporated(
   coordinate.Incorporated(
     option.unwrap(row.name, ""),
     option.unwrap(row.state, ""),
+    row.population,
+    row.latitude,
+    row.longitude,
   )
 }
 
@@ -79,6 +82,9 @@ fn unincorporated_place(
   coordinate.Unincorporated(
     option.unwrap(row.name, ""),
     option.unwrap(row.state, ""),
+    row.population,
+    row.latitude,
+    row.longitude,
   )
 }
 
@@ -260,7 +266,8 @@ pub fn reverse(
   let place_res = place(db_conn, coords)
 
   case place_res {
-    Ok(item) -> Ok(coordinate.Place(item.name, item.state))
+    Ok(item) ->
+      Ok(coordinate.Place(item.name, item.state, item.latitude, item.longitude))
     _ -> {
       let nearest_query_result =
         db_conn
@@ -280,6 +287,8 @@ pub fn reverse(
         nearest_row.state,
         nearest_row.dist,
         bearing.bearing_from_angle(nearest_row.bearing),
+        nearest_row.latitude,
+        nearest_row.longitude,
       )
     }
   }
@@ -376,4 +385,36 @@ pub fn clean_watershed_items(items: List(String)) -> List(String) {
     }
   })
   |> list.reverse
+}
+
+pub fn nearest_larger_place(
+  db_conn: pog.Connection,
+  coords: coordinate.Coordinate,
+  population: Int,
+) -> Result(coordinate.ReverseGeocode, DatabaseError) {
+  let query_result =
+    db_conn
+    |> sql.get_nearest_larger_place(
+      coords.longitude,
+      coords.latitude,
+      population,
+    )
+    |> result.map_error(QueryError)
+
+  use pog.Returned(_, rows) <- result.try(query_result)
+  let row =
+    rows
+    |> list.first
+    |> result.replace_error(NoRecordsFoundError)
+
+  use nearest_row <- result.map(row)
+
+  coordinate.NearestPlace(
+    nearest_row.name,
+    nearest_row.state,
+    bearing.meters_to_miles(nearest_row.dist),
+    bearing.bearing_from_angle(nearest_row.bearing),
+    nearest_row.latitude,
+    nearest_row.longitude,
+  )
 }

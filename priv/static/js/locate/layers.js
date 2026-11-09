@@ -4,16 +4,6 @@ export function createLayerRegistry({ L, map, raw = (i) => i }) {
 
   return {
     has: (key) => key in layers,
-    showTooltip: (key) => {
-      if (!(key in layers)) return;
-      for (const k of Object.keys(layers)) {
-        if (key === k) {
-          layers[key].getTooltip().openTooltip();
-        } else {
-          layers[key].getTooltip().closeTooltip();
-        }
-      }
-    },
     add: (key, factory) => {
       if (key in layers) return layers[key];
       const layer = factory();

@@ -103,7 +103,13 @@ pub fn predictions_from_json_malformed_test() {
 }
 
 pub fn reverse_geocode_place_json_test() {
-  let json = coordinate.reverse_geocode_to_json(coordinate.Place("Boise", "ID"))
+  let json =
+    coordinate.reverse_geocode_to_json(coordinate.Place(
+      "Boise",
+      "ID",
+      45.0,
+      -117.0,
+    ))
 
   assert json == "{\"place\":\"Boise\",\"state\":\"ID\"}"
 }
@@ -115,6 +121,8 @@ pub fn reverse_geocode_nearest_place_json_test() {
       "ID",
       12.5,
       "NE",
+      45.0,
+      -117.0,
     ))
 
   assert json
@@ -123,7 +131,12 @@ pub fn reverse_geocode_nearest_place_json_test() {
 
 pub fn reverse_geocode_escapes_quotes_test() {
   let json =
-    coordinate.reverse_geocode_to_json(coordinate.Place("Say \"Hi\"", "ID"))
+    coordinate.reverse_geocode_to_json(coordinate.Place(
+      "Say \"Hi\"",
+      "ID",
+      -45.0,
+      -117.0,
+    ))
 
   assert json == "{\"place\":\"Say \\\"Hi\\\"\",\"state\":\"ID\"}"
 }
